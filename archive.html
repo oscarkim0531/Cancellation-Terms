@@ -15,22 +15,34 @@
         const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv`;
 
         const KEYS = {
-            serviceName: "Service Name",
-            category: "Category",
-            difficulty: "Difficulty",
+            serviceName:      "Service Name",
+            mediaType:        "Media Type",
+            ownershipType:    "Ownership Type",
+            category:         "Category",
+            launchDate:       "Launch Date",
+            region:           "Region",
+            targetAudience:   "Target Audience",
+            marketShare:      "Market Share",
+            billingCycle:     "Billing Cycle",
             cancellationFeatures: "Cancellation Features",
-            fontSize: "Font Size",
-            leading: "Leading",
-            backgroundColor: "Background Color",
-            textColor: "Text Color",
-            fontFamily: "Font Family"
+            difficulty:       "Difficulty",
+            fullTerms:        "Full Terms",
+            sourceUrl:        "Source URL",
+            fontFamily:       "Font Family",
+            fontSize:         "Font Size",
+            leading:          "Leading",
+            tracking:         "Tracking",
+            backgroundColor:  "Background Color",
+            textColor:        "Text Color",
+            notes:            "Notes"
         };
 
         function parseCSV(text) {
             const lines = text.trim().split("\n");
-            const headers = lines[0].split(",").map(h => h.trim().replace(/"/g, ''));
+            const headers = splitCSVLine(lines[0]).map(h => h.trim().replace(/"/g, ''));
+            
             return lines.slice(1).map(line => {
-                const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); // 따옴표 안 쉼표 무시 정규식
+                const values = splitCSVLine(line);
                 const obj = {};
                 headers.forEach((h, i) => {
                     obj[h] = (values[i] || "").trim().replace(/"/g, '');
@@ -39,6 +51,25 @@
             });
         }
 
+        function splitCSVLine(line) {
+            const result = [];
+            let current = "";
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                const ch = line[i];
+                if (ch === '"') inQuotes = !inQuotes;
+                else if (ch === "," && !inQuotes) {
+                    result.push(current);
+                    current = "";
+                } else {
+                    current += ch;
+                }
+            }
+            result.push(current);
+            return result;
+        }
+
+        // 3. 데이터 패치 및 카드 생성
         fetch(CSV_URL)
             .then(res => res.text())
             .then(text => {
@@ -52,34 +83,59 @@
                     const card = document.createElement("div");
                     card.className = "card";
                     
-                    const previewStyle = `
-                        background-color: ${row[KEYS.backgroundColor] || '#ffffff'}; 
-                        color: ${row[KEYS.textColor] || '#000000'};
-                    `;
-
+                    // 카드에는 핵심 정보(이름, 카테고리, 난이도, 요약)만 노출
                     card.innerHTML = `
-                        <div class="card-preview" style="${previewStyle}">
-                            <span style="font-size: ${row[KEYS.fontSize]}pt; line-height: ${row[KEYS.leading]}; font-family: ${row[KEYS.fontFamily]};">
-                                ${row[KEYS.serviceName]}
-                            </span>
-                        </div>
-                        <div class="card-body">
-                            <div class="card-header">
+                        <div class="card-content">
+                            <div class="card-meta">
                                 <span class="category">${row[KEYS.category]}</span>
                                 <span class="difficulty ${row[KEYS.difficulty]}">${row[KEYS.difficulty]}</span>
                             </div>
                             <h2 class="service-name">${row[KEYS.serviceName]}</h2>
                             <p class="features">${row[KEYS.cancellationFeatures]}</p>
-                            <div class="specs">
-                                <span>Size<strong>${row[KEYS.fontSize]}pt</strong></span>
-                                <span>Leading<strong>${row[KEYS.leading]}</strong></span>
-                                <span>Color<strong>${row[KEYS.textColor]}</strong></span>
+                            <div class="card-footer">
+                                <span>${row[KEYS.mediaType]}</span>
+                                <span>${row[KEYS.billingCycle]}</span>
                             </div>
                         </div>
                     `;
+
+                    // 클릭 시 팝업 띄우기 (Cyberfeminism Index 스타일)
+                    card.onclick = () => openDetailModal(row);
                     grid.appendChild(card);
                 });
             });
+
+        // 4. 상세 팝업 함수 (모든 시트 정보 노출)
+        function openDetailModal(row) {
+            // 부모창(index.html)의 모달 시스템을 사용하거나 archive.html 내부에 모달을 만듭니다.
+            // 여기서는 간단하게 전용 상세 창을 생성하는 로직을 제안합니다.
+            const modal = document.createElement("div");
+            modal.className = "detail-modal";
+            modal.innerHTML = `
+                <div class="modal-inner">
+                    <button class="close-modal">CLOSE [X]</button>
+                    <div class="modal-scroll">
+                        <h1>${row[KEYS.serviceName]}</h1>
+                        <table class="detail-table">
+                            <tr><th>Category</th><td>${row[KEYS.category]}</td></tr>
+                            <tr><th>Media Type</th><td>${row[KEYS.mediaType]}</td></tr>
+                            <tr><th>Ownership</th><td>${row[KEYS.ownershipType]}</td></tr>
+                            <tr><th>Market Share</th><td>${row[KEYS.marketShare]}</td></tr>
+                            <tr><th>Pricing</th><td>${row[KEYS.pricing]}</td></tr>
+                            <tr><th>Difficulty</th><td>${row[KEYS.difficulty]}</td></tr>
+                            <tr><th>Notes</th><td>${row[KEYS.notes]}</td></tr>
+                        </table>
+                        <div class="terms-section">
+                            <h3>FULL CANCELLATION TERMS</h3>
+                            <p class="terms-body">${row[KEYS.fullTerms]}</p>
+                            <a href="${row[KEYS.sourceUrl]}" target="_blank" class="source-link">Original Source ↗</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.querySelector('.close-modal').onclick = () => modal.remove();
+        }
     </script>
 </body>
 </html>
