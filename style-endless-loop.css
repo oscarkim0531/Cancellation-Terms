@@ -3,6 +3,8 @@
     src: local('Apple SD Gothic Neo'), local('AppleSDGothicNeo-Regular'); 
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap');
+
 /* 1. 기본 초기화 */
 html, body {
     margin: 0;
@@ -31,36 +33,46 @@ html, body {
     /* 텍스트 덩어리를 만들기 위한 설정 */
     text-align: justify;       /* 양끝 정렬 */
     word-break: break-all;      /* 단어 단위 무시하고 꽉 채움 */
-    line-height: 2.2;           /* 테두리끼리 겹치지 않게 여유 있게 설정 */
-    
+
     padding: 2rem 0;
-    animation: scrollUp 5s linear infinite; /* 속도는 40~60s 추천 */
+    animation: scrollUp 50s linear infinite; /* 속도는 40~60s 추천 */
 }
 
 /* 3. 문장 개별 스타일 (테두리 및 간격) */
 .term-sentence {
-    display: inline; /* 문단 안의 글자처럼 취급 */
-    padding: 0.2rem 0.5rem; /* 글자 주변 테두리 여백 */
-    margin: 0; /* 블록 마진 제거 */
-    box-decoration-break: clone; /* 줄바꿈 시 테두리가 끊기지 않고 꺾이게 함 */
-    -webkit-box-decoration-break: clone; /* 크롬/사파리 호환성 */
-    border-radius: 4px; /* 꺾이는 지점을 부드럽게 (선택사항) */
+    display: inline;
+    padding: 0.2rem 0.5rem;
+    
+    /* 1. border 대신 box-shadow 사용 (테두리 역할) */
+    box-shadow: 0 0 0 2px #33ff33; 
+    
+    /* 2. 줄바꿈 시 그림자가 겹치도록 설정 */
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+
+    /* 3. 행간을 조절하여 윗줄과 아랫줄의 그림자를 밀착시킴 */
+    /* 이 수치는 폰트 크기에 따라 1.2 ~ 1.5 사이에서 미세하게 조정해야 합니다 */
+    line-height: 1.2; 
+    
+    /* 4. 배경색을 칠해서 뒷줄 그림자를 덮어버림 */
+    background-color: inherit; 
+    
+    position: relative;
+    z-index: 1;
 }
 
-/* 4. 자동 스크롤 애니메이션 정의 */
+/* 3. 애니메이션 정의 수정 */
 @keyframes scrollUp {
     0% {
         transform: translateY(0);
     }
     100% {
-        transform: translateY(-50%); /* 데이터 2배 복사본의 절반 지점 */
+        /* JS에서 계산한 --scroll-distance 값을 사용합니다. */
+        /* 값이 없으면 기본값 -50%를 사용하도록 방어 코드를 짭니다. */
+        transform: translateY(var(--scroll-distance, -50%));
     }
 }
 
-/* 마우스 호버 시 일시 정지 (선택 사항: 읽기 편하도록) */
-#scroll-content:hover {
-    animation-play-state: paused;
-}
 
 /* 로딩 메시지 */
 .status-msg {
