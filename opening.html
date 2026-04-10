@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="./style-opening.css">
+</head>
+<body>
+    <div id="opening-canvas"></div>
+
+    <script>
+        const canvas = document.getElementById('opening-canvas');
+        const phrases = ["CANCELLATION", "VOID", "TERMS", "REQUIRED", "PENALTY"]; // 폭사할 단어들
+
+        function startOpening() {
+            let count = 0;
+            const timer = setInterval(() => {
+                const word = document.createElement('div');
+                word.className = 'flood-word';
+                word.innerText = phrases[Math.floor(Math.random() * phrases.length)];
+                
+                // 랜덤 위치 및 크기 설정
+                word.style.left = Math.random() * 100 + 'vw';
+                word.style.top = Math.random() * 100 + 'vh';
+                word.style.fontSize = (Math.random() * 60 + 20) + 'pt';
+                
+                canvas.appendChild(word);
+                count++;
+
+                if (count > 300) { // 300개 생성 후 정지
+                    clearInterval(timer);
+                    setTimeout(() => {
+                        // index.html(부모)에 종료 신호 전송
+                        window.parent.postMessage('opening-finished', '*');
+                    }, 800); 
+                }
+            }, 5); // 0.005초 간격
+        }
+        window.onload = startOpening;
+    </script>
+</body>
+</html>
