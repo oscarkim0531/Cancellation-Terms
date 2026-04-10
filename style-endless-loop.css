@@ -1,9 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap');
+
 @font-face {
     font-family: 'Apple SD Gothic Neo'; /* 시트 'FontFamily' 칸에 적을 이름과 똑같이! */
     src: local('Apple SD Gothic Neo'), local('AppleSDGothicNeo-Regular'); 
 }
-
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap');
 
 /* 1. 기본 초기화 */
 html, body {
@@ -35,7 +35,7 @@ html, body {
     word-break: break-all;      /* 단어 단위 무시하고 꽉 채움 */
 
     padding: 2rem 0;
-    animation: scrollUp 50s linear infinite; /* 속도는 40~60s 추천 */
+    animation: scrollUp 100s linear infinite; /* 속도는 40~60s 추천 */
 }
 
 /* 3. 문장 개별 스타일 (테두리 및 간격) */

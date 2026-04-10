@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Trace of Termination | Interaction</title>
+    <link rel="stylesheet" href="./css-trace-system.css">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+</head>
+<body>
+    <div id="interaction-canvas">
+        <div class="system-declaration">
+            귀하의 모든 움직임은 약관 고지 의무를 발생시키며, 본 시스템은 모든 고지 사항을 전달했음을 증명합니다.
+            <span class="checkbox-mock">[v] 숙지함</span>
+        </div>
+
+        <button id="evasive-button">해지하기</button>
+        
+        <div id="word-container"></div>
+    </div>
+
+    <script>
+        const SPREADSHEET_ID = "1u_g0_sTB0IDUcopOMRUSM8lVtMSWcSaUgLcaru-pHyg";
+        const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv`;
+
+        let wordsBuffer = [];
+        let wordIndex = 0;
+        const container = document.getElementById('word-container');
+        const button = document.getElementById('evasive-button');
+        
+        // 버튼 로직 변수
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+        let buttonAngle = Math.random() * Math.PI * 2; // 초기 랜덤 각도
+        let targetRadius = 150; // 마우스와의 유지 거리
+        let currentRadius = 150;
+        let rotationSpeed = 0.05; // 회전 속도
+        let isEscapeEnabled = true;
+
+        // 1. 데이터 로드 및 단어 파편화
+        fetch(CSV_URL)
+            .then(res => res.text())
+            .then(text => {
+                const rows = parseCSV(text);
+                // 모든 문장을 단어 단위(공백 기준)로 쪼개어 버퍼에 저장
+                rows.forEach(row => {
+                    if (row.Sentence) {
+                        const splitWords = row.Sentence.split(' ');
+                        splitWords.forEach(w => {
+                            wordsBuffer.push({
+                                text: w,
+                                font: row.FontFamily || 'Pretendard',
+                                size: row.FontSize || '12',
+                                color: row['Text Color'] || '#ffffff',
+                                bg: row['Background Color'] || '#000000'
+                            });
+                        });
+                    }
+                });
+                startSystem();
+            });
+
+        function parseCSV(text) {
+            const rows = text.split('\n');
+            const headers = rows[0].split(',').map(h => h.trim().replace(/"/g, ''));
+            return rows.slice(1).map(line => {
+                const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                const obj = {};
+                headers.forEach((h, i) => {
+                    obj[h] = (values[i] || "").trim().replace(/"/g, '');
+                });
+                return obj;
+            });
+        }
+
+        // 2. 마우스 궤적 추적 및 단어 생성
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            createWordBlock(e.clientX, e.clientY);
+        });
+
+        function createWordBlock(x, y) {
+            if (wordsBuffer.length === 0) return;
+            
+            const data = wordsBuffer[wordIndex];
+            const span = document.createElement('span');
+            span.className = 'word-block';
+            span.innerText = data.text;
+            
+            // 스타일 주입
+            span.style.left = `${x}px`;
+            span.style.top = `${y}px`;
+            span.style.fontFamily = `'${data.font}', sans-serif`;
+            span.style.fontSize = `${data.size}pt`;
+            span.style.color = data.color.startsWith('#') ? data.color : '#' + data.color;
+            span.style.backgroundColor = data.bg.startsWith('#') ? data.bg : '#' + data.bg;
+            span.style.boxShadow = `0 0 0 2px ${span.style.color}`; // 테두리 효과
+            
+            container.appendChild(span);
+            
+            wordIndex = (wordIndex + 1) % wordsBuffer.length;
+        }
+
+        // 3. 버튼 회피 알고리즘 (가상의 원 + 화면 끝 충돌 회피)
+        function updateButton() {
+            if (!isEscapeEnabled) return;
+
+            // 회전 애니메이션
+            buttonAngle += rotationSpeed;
+
+            // 기본 위치 계산
+            let targetX = mouseX + Math.cos(buttonAngle) * currentRadius;
+            let targetY = mouseY + Math.sin(buttonAngle) * currentRadius;
+
+            // 화면 끝 충돌 감지 및 보정 (Edge Constraint)
+            const margin = 50; // 화면 끝과의 여유
+            const btnRect = button.getBoundingClientRect();
+            
+            if (targetX < margin) targetX = margin;
+            if (targetX > window.innerWidth - btnRect.width - margin) targetX = window.innerWidth - btnRect.width - margin;
+            if (targetY < margin) targetY = margin;
+            if (targetY > window.innerHeight - btnRect.height - margin) targetY = window.innerHeight - btnRect.height - margin;
+
+            // 만약 마우스가 버튼을 화면 끝으로 몰아넣으면 회전 방향을 반전시킴
+            if (targetX <= margin || targetX >= window.innerWidth - btnRect.width - margin || 
+                targetY <= margin || targetY >= window.innerHeight - btnRect.height - margin) {
+                rotationSpeed *= -1;
+            }
+
+            button.style.left = `${targetX}px`;
+            button.style.top = `${targetY}px`;
+
+            requestAnimationFrame(updateButton);
+        }
+
+        function startSystem() {
+            // 초기 버튼 위치 설정 (랜덤)
+            button.style.display = 'block';
+            updateButton();
+
+            // 15초 후 버튼이 마우스로 다가오게 함 (Phase 전환)
+            setTimeout(() => {
+                const shrinkInterval = setInterval(() => {
+                    if (currentRadius > 5) {
+                        currentRadius -= 1;
+                    } else {
+                        clearInterval(shrinkInterval);
+                        // 버튼 클릭 가능 상태
+                        button.style.cursor = 'pointer';
+                        button.onclick = () => alert('해지 프로세스 아카이브로 이동합니다.'); 
+                    }
+                }, 50);
+            }, 15000); // 15초 후 접근 허용
+        }
+    </script>
+</body>
+</html>
