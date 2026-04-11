@@ -17,7 +17,8 @@
         <div class="nav-left">
             <h1 class="logo">CANCELLATION TERMS</h1>
             <div class="mode-switch">
-                <button id="btn-loop" class="active">ENDLESS LOOP</button>
+                <button id="btn-trace">TRACE</button>
+                <button id="btn-loop">LOOP</button>
                 <button id="btn-archive">ARCHIVE</button>
             </div>
         </div>
@@ -35,23 +36,12 @@
             <iframe src="./trace-system.html" id="trace-frame" frameborder="0"></iframe>
         </section>
 
-        <section id="section-loop" class="content-section">
-            <iframe 
-                src="./endless-loop.html" 
-                id="loop-frame" 
-                frameborder="0" 
-                style="width: 100%; height: calc(100vh - 80px); background: transparent;"
-                title="Endless Loop: Infinite Cancellation Terms">
-            </iframe>
+        <section id="section-loop" class="content-section hidden">
+            <iframe src="./endless-loop.html" id="loop-frame" frameborder="0"></iframe>
         </section>
 
         <section id="section-archive" class="content-section hidden">
-            <iframe 
-                src="./archive.html"
-                id="archive-frame"
-                frameborder="0"
-                style="width:100%; height:calc(100vh - 80px);">
-            </iframe>
+            <iframe src="./archive.html" id="archive-frame" frameborder="0"></iframe>
         </section>
     </main>
 
@@ -64,37 +54,55 @@
     </div>
 
     <script>
-        // 탭 전환 및 모달 제어 기본 스크립트
-        const btnLoop = document.getElementById('btn-loop');
-        const btnArchive = document.getElementById('btn-archive');
+
+        const sections = {
+            opening: document.getElementById('section-opening'),
+            trace: document.getElementById('section-trace'),
+            loop: document.getElementById('section-loop'),
+            archive: document.getElementById('section-archive')
+        };
+
+        const buttons = {
+            trace: document.getElementById('btn-trace'),
+            loop: document.getElementById('btn-loop'),
+            archive: document.getElementById('btn-archive')
+        };
+
+        // 섹션 전환 함수
+        function showSection(targetKey) {
+            // 모든 섹션 숨기기
+            Object.values(sections).forEach(sec => sec.classList.add('hidden'));
+            // 모든 버튼 비활성화
+            Object.values(buttons).forEach(btn => btn.classList.remove('active'));
+
+            // 선택한 섹션만 보이기
+            if (sections[targetKey]) {
+                sections[targetKey].classList.remove('hidden');
+            }
+            // 선택한 버튼 활성화
+            if (buttons[targetKey]) {
+                buttons[targetKey].classList.add('active');
+            }
+        }
+
+        // 1. 오프닝 종료 이벤트 수신
+        window.addEventListener('message', (e) => {
+            if (e.data === 'opening-finished') {
+                showSection('trace'); // 오프닝 후 TRACE 모드를 기본으로 시작
+            }
+        });
+
+        // 2. 버튼 클릭 이벤트 연결
+        buttons.trace.onclick = () => showSection('trace');
+        buttons.loop.onclick = () => showSection('loop');
+        buttons.archive.onclick = () => showSection('archive');
+
+        // About 모달 로직 (기존과 동일)
         const btnAbout = document.getElementById('btn-about');
-        const sectionLoop = document.getElementById('section-loop');
-        const sectionArchive = document.getElementById('section-archive');
         const modal = document.getElementById('about-modal');
         const closeBtn = document.querySelector('.close-button');
-
-        // Loop 버튼 클릭
-        btnLoop.onclick = () => {
-            btnLoop.className = 'active';
-            btnArchive.className = '';
-            sectionLoop.classList.remove('hidden');
-            sectionArchive.classList.add('hidden');
-        };
-
-        // Archive 버튼 클릭
-        btnArchive.onclick = () => {
-            btnArchive.className = 'active';
-            btnLoop.className = '';
-            sectionArchive.classList.remove('hidden');
-            sectionLoop.classList.add('hidden');
-        };
-
-        // About 모달 제어
         btnAbout.onclick = () => modal.classList.remove('hidden');
         closeBtn.onclick = () => modal.classList.add('hidden');
-        window.onclick = (event) => {
-            if (event.target == modal) modal.classList.add('hidden');
-        };
     </script>
 </body>
 </html>
