@@ -2,156 +2,168 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Trace of Termination | Interaction</title>
+    <title>Trace System | Interaction</title>
     <link rel="stylesheet" href="./css-trace-system.css">
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 </head>
 <body>
     <div id="interaction-canvas">
         <div class="system-declaration">
-            귀하의 모든 움직임은 약관 고지 의무를 발생시키며, 본 시스템은 모든 고지 사항을 전달했음을 증명합니다.
-            <span class="checkbox-mock">[v] 숙지함</span>
+            귀하는 본 고지 사항을 모두 읽었으며, 해지 시 발생하는 모든 불이익을 본인의 책임으로 수용합니다.
         </div>
 
         <button id="evasive-button">해지하기</button>
+
+        <svg id="line-canvas"></svg>
         
         <div id="word-container"></div>
     </div>
 
     <script>
-        const SPREADSHEET_ID = "1u_g0_sTB0IDUcopOMRUSM8lVtMSWcSaUgLcaru-pHyg";
-        const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv`;
+        /* ==========================================
+           1. 핵심 설정 변수 (이 값들을 수정해 보세요)
+           ========================================== */
+        const createInterval = 150;     // 👉 단어 생성 간격 (ms) : 값이 클수록 단어가 천천히 생깁니다.
+        const initialRadius = 200;      // 👉 초기 버튼 도망 반경 (px)
+        const rotationSpeed = 0.03;     // 👉 버튼의 회전 속도
+        const phaseDuration = 6000;    // 👉 Phase 전환 대기 시간 (ms) : 15초 후 버튼이 다가옵니다.
+        const lineOpacity = 0.6;        // 👉 연결 선의 투명도 (0~1)
+        
+        /* ==========================================
+           2. 문장 데이터 세팅
+           ========================================== */
+        const chosenSentences = [
+            "귀하가 본 서비스를 해지하더라도 이미 결제된 요금은 일절 환불되지 않습니다.",
+            "중도 해지 시 모든 할인 혜택은 위약금으로 소급 청구될 수 있습니다.",
+            "해지 즉시 모든 데이터는 영구적으로 삭제되며 복구는 불가능합니다.",
+            "무료 체험 종료 후 별도의 통지 없이 유료로 자동 전환됩니다.",
+            "본 약관 동의는 향후 발생하는 모든 분쟁에 대한 이의 제기 포기를 의미합니다.",
+            "회사는 경영상의 사유로 서비스 내용을 변경할 수 있으며, 이는 이용자의 해지 사유가 되지 않습니다.",
+            "해지 버튼을 누르기 전, 귀하가 포기하게 되는 혜택들을 다시 한번 상세히 숙지하시기 바랍니다.",
+            "정기 결제 해지는 최소 다음 결제일 7일 전까지 완료되어야 하며, 이후 신청은 다음 달에 반영됩니다.",
+            "일부 프로모션 상품의 경우 시스템 구조상 온라인 해지가 불가능하며 고객센터 연결이 필요합니다.",
+            "귀하는 본 고지 사항을 모두 읽었으며, 해지 시 발생하는 모든 불이익을 본인의 책임으로 수용합니다."
+        ];
 
+        /* ==========================================
+           3. 시스템 로직 (수정 시 주의)
+           ========================================== */
         let wordsBuffer = [];
-        let wordIndex = 0;
+        let linesBuffer = []; // 생성된 모든 선(line) 객체를 저장할 배열
+        let sentenceIndex = 0;
+        let wordIndexInSentence = 0;
+        
         const container = document.getElementById('word-container');
         const button = document.getElementById('evasive-button');
+        const lineCanvas = document.getElementById('line-canvas');
         
-        // 버튼 로직 변수
         let mouseX = window.innerWidth / 2;
         let mouseY = window.innerHeight / 2;
-        let buttonAngle = Math.random() * Math.PI * 2; // 초기 랜덤 각도
-        let targetRadius = 150; // 마우스와의 유지 거리
-        let currentRadius = 150;
-        let rotationSpeed = 0.05; // 회전 속도
-        let isEscapeEnabled = true;
+        let buttonAngle = Math.random() * Math.PI * 2; 
+        let currentRadius = initialRadius;
+        let isClickable = false;
 
-        // 1. 데이터 로드 및 단어 파편화
-        fetch(CSV_URL)
-            .then(res => res.text())
-            .then(text => {
-                const rows = parseCSV(text);
-                // 모든 문장을 단어 단위(공백 기준)로 쪼개어 버퍼에 저장
-                rows.forEach(row => {
-                    if (row.Sentence) {
-                        const splitWords = row.Sentence.split(' ');
-                        splitWords.forEach(w => {
-                            wordsBuffer.push({
-                                text: w,
-                                font: row.FontFamily || 'Pretendard',
-                                size: row.FontSize || '12',
-                                color: row['Text Color'] || '#ffffff',
-                                bg: row['Background Color'] || '#000000'
-                            });
-                        });
-                    }
-                });
-                startSystem();
-            });
-
-        function parseCSV(text) {
-            const rows = text.split('\n');
-            const headers = rows[0].split(',').map(h => h.trim().replace(/"/g, ''));
-            return rows.slice(1).map(line => {
-                const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                const obj = {};
-                headers.forEach((h, i) => {
-                    obj[h] = (values[i] || "").trim().replace(/"/g, '');
-                });
-                return obj;
-            });
-        }
-
-        // 2. 마우스 궤적 추적 및 단어 생성
+        // 마우스 이동 감지
         window.addEventListener('mousemove', (e) => {
             mouseX = e.clientX;
             mouseY = e.clientY;
-            createWordBlock(e.clientX, e.clientY);
         });
 
-        function createWordBlock(x, y) {
-            if (wordsBuffer.length === 0) return;
-            
-            const data = wordsBuffer[wordIndex];
+        // 일정 간격마다 단어 생성 및 선 연결
+        setInterval(() => {
+            createWordAndLine();
+        }, createInterval);
+
+        function createWordAndLine() {
+            // 1. 현재 문장에서 단어 추출
+            const currentFullSentence = chosenSentences[sentenceIndex];
+            const wordsInSentence = currentFullSentence.split(' ');
+            const currentWord = wordsInSentence[wordIndexInSentence];
+
+            // 2. 단어 블록(span) 생성
             const span = document.createElement('span');
             span.className = 'word-block';
-            span.innerText = data.text;
-            
-            // 스타일 주입
-            span.style.left = `${x}px`;
-            span.style.top = `${y}px`;
-            span.style.fontFamily = `'${data.font}', sans-serif`;
-            span.style.fontSize = `${data.size}pt`;
-            span.style.color = data.color.startsWith('#') ? data.color : '#' + data.color;
-            span.style.backgroundColor = data.bg.startsWith('#') ? data.bg : '#' + data.bg;
-            span.style.boxShadow = `0 0 0 2px ${span.style.color}`; // 테두리 효과
-            
+            span.innerText = currentWord;
+            span.style.left = `${mouseX}px`;
+            span.style.top = `${mouseY}px`;
             container.appendChild(span);
+
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            // x1, y1은 단어의 고정 위치(mouseX, mouseY)
+            line.setAttribute("x1", mouseX);
+            line.setAttribute("y1", mouseY);
+            line.setAttribute("stroke", "#ff0000");
+            line.setAttribute("stroke-width", "1"); // 4는 너무 두꺼울 수 있어 1~2 추천
+            line.setAttribute("opacity", lineOpacity);
             
-            wordIndex = (wordIndex + 1) % wordsBuffer.length;
+            lineCanvas.appendChild(line);
+            
+            // 👉 생성된 선 객체와 단어의 고정 좌표를 배열에 저장
+            linesBuffer.push({
+                element: line,
+                originX: mouseX,
+                originY: mouseY
+            });
+
+            // 인덱스 관리
+            wordIndexInSentence++;
+            if (wordIndexInSentence >= wordsInSentence.length) {
+                wordIndexInSentence = 0;
+                sentenceIndex = (sentenceIndex + 1) % chosenSentences.length;
+            }
         }
 
-        // 3. 버튼 회피 알고리즘 (가상의 원 + 화면 끝 충돌 회피)
+        // 버튼 위치 업데이트 (반경 시각화 및 충돌 회피 포함)
         function updateButton() {
-            if (!isEscapeEnabled) return;
-
-            // 회전 애니메이션
             buttonAngle += rotationSpeed;
 
-            // 기본 위치 계산
             let targetX = mouseX + Math.cos(buttonAngle) * currentRadius;
             let targetY = mouseY + Math.sin(buttonAngle) * currentRadius;
 
-            // 화면 끝 충돌 감지 및 보정 (Edge Constraint)
-            const margin = 50; // 화면 끝과의 여유
-            const btnRect = button.getBoundingClientRect();
-            
-            if (targetX < margin) targetX = margin;
-            if (targetX > window.innerWidth - btnRect.width - margin) targetX = window.innerWidth - btnRect.width - margin;
-            if (targetY < margin) targetY = margin;
-            if (targetY > window.innerHeight - btnRect.height - margin) targetY = window.innerHeight - btnRect.height - margin;
+            // 화면 끝 충돌 방지 로직
+            const margin = 60;
+            const btnWidth = button.offsetWidth;
+            const btnHeight = button.offsetHeight;
 
-            // 만약 마우스가 버튼을 화면 끝으로 몰아넣으면 회전 방향을 반전시킴
-            if (targetX <= margin || targetX >= window.innerWidth - btnRect.width - margin || 
-                targetY <= margin || targetY >= window.innerHeight - btnRect.height - margin) {
-                rotationSpeed *= -1;
-            }
+            if (targetX < margin) targetX = margin;
+            if (targetX > window.innerWidth - btnWidth - margin) targetX = window.innerWidth - btnWidth - margin;
+            if (targetY < margin) targetY = margin;
+            if (targetY > window.innerHeight - btnHeight - margin) targetY = window.innerHeight - btnHeight - margin;
 
             button.style.left = `${targetX}px`;
             button.style.top = `${targetY}px`;
 
+            // 👉 추가된 로직: 모든 선이 움직이는 버튼의 중앙을 따라오게 함
+            const btnRect = button.getBoundingClientRect();
+            const btnCenterX = btnRect.left + btnRect.width / 2;
+            const btnCenterY = btnRect.top + btnRect.height / 2;
+
+            linesBuffer.forEach(lineObj => {
+                lineObj.element.setAttribute("x2", btnCenterX);
+                lineObj.element.setAttribute("y2", btnCenterY);
+            });
+
             requestAnimationFrame(updateButton);
         }
 
-        function startSystem() {
-            // 초기 버튼 위치 설정 (랜덤)
-            button.style.display = 'block';
+        // 초기화 및 Phase 관리
+        window.onload = () => {
             updateButton();
 
-            // 15초 후 버튼이 마우스로 다가오게 함 (Phase 전환)
+            // 설정된 시간 이후 버튼이 서서히 마우스로 다가옴
             setTimeout(() => {
-                const shrinkInterval = setInterval(() => {
+                const shrinkEffect = setInterval(() => {
                     if (currentRadius > 5) {
-                        currentRadius -= 1;
+                        currentRadius -= 2; // 서서히 줄어드는 속도
                     } else {
-                        clearInterval(shrinkInterval);
-                        // 버튼 클릭 가능 상태
-                        button.style.cursor = 'pointer';
-                        button.onclick = () => alert('해지 프로세스 아카이브로 이동합니다.'); 
+                        clearInterval(shrinkEffect);
+                        isClickable = true;
+                        button.classList.add('clickable');
+                        button.onclick = () => window.parent.postMessage('go-to-archive', '*');
                     }
-                }, 50);
-            }, 15000); // 15초 후 접근 허용
-        }
+                }, 100);
+            }, phaseDuration);
+        };
     </script>
 </body>
 </html>

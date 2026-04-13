@@ -23,7 +23,7 @@
             let count = 0;
             const totalWords = 90; 
 
-            const createInterval = 60; 
+            const createInterval = 40; 
             // 👉 단어 생성 간격(ms)
             // 작을수록 빠르게 채워짐 (30~60 추천)
 
@@ -57,23 +57,6 @@
                     clearInterval(attackTimer);
 
                     const allBoxes = document.querySelectorAll('.flood-box');
-
-                    // 2. 제거
-                    allBoxes.forEach((box) => {
-
-                        const randomDelay = Math.random() * 600; 
-                        // 👉 각 단어가 사라지는 랜덤 타이밍 (0~600ms)
-                        // 값이 클수록 더 퍼진 느낌
-
-                        setTimeout(() => {
-                            box.style.opacity = '0';
-
-                            // 👉 scale 제거 (집단 축소 문제 해결)
-                            // 필요하면 아래처럼 랜덤 scale 가능
-                            // box.style.transform += ` scale(${Math.random() * 0.3 + 0.7})`;
-
-                        }, randomDelay);
-                    });
 
                     // 3. 전체 화면 fade out
                     setTimeout(() => {
