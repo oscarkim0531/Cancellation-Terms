@@ -37,7 +37,7 @@
 
     <div id="custom-modal" class="modal-hidden">
         <div class="modal-content">
-            <p>정말 해지하시겠습니까?<br>해지 약관 아카이브로 이동합니다.</p>
+            <p>정말 해지하시겠습니까?</p>
             <button id="modal-confirm-btn">이동하기</button>
         </div>
     </div>
@@ -116,6 +116,7 @@
         let blockCount = 0;
         let startTime = null;
         let elapsedTime = 0;
+        let fullTraceText = "";
 
         // 기존 스크립트 하단에 추가
         window.addEventListener('message', (e) => {
@@ -135,12 +136,16 @@
             if (isSystemStarted) return; // 이미 시작되었다면 중복 실행 방지
             isSystemStarted = true;
 
+            // 새로운 추적을 위해 이전 데이터 초기화
+            fullTraceText = "";
+            localStorage.removeItem('userTraceData');
+
             // 0.5초(500ms) 동안 검은 화면과 버튼만 보여준 뒤 단어 생성 시작
             setTimeout(() => {
                 creationTimer = setInterval(() => {
                     createWordAndLine();
                 }, createInterval);
-            }, 500); // 👉 승민 님이 말씀하신 '0.5초의 정적' 대기 시간
+            }, 500);
         }
 
         function createWordAndLine() {
@@ -207,8 +212,12 @@
             lastWordX = currentX;
             lastWordY = currentY;
 
+            fullTraceText += currentWord + " "; // 단어들을 계속 이어 붙임
+            localStorage.setItem('userTraceData', fullTraceText); // 실시간 저장
+
             // 단어 블록들과 해지하기 버튼 간의 연결
             const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            
             // x1, y1은 단어의 고정 위치(mouseX, mouseY)
             line.setAttribute("x1", mouseX);
             line.setAttribute("y1", mouseY);
@@ -357,7 +366,7 @@
         };
 
         document.getElementById('modal-confirm-btn').onclick = () => {
-            window.parent.postMessage('go-to-archive', '*');
+            window.parent.postMessage('go-to-text', '*');
         };
         
     </script>

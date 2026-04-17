@@ -40,6 +40,10 @@
             <iframe src="./endless-loop.html" id="loop-frame" frameborder="0"></iframe>
         </section> -->
 
+        <section id="section-text" class="content-section hidden">
+            <iframe src="./text.html" id="text-frame" frameborder="0"></iframe>
+        </section>
+
         <section id="section-archive" class="content-section hidden">
             <iframe src="./archive.html" id="archive-frame" frameborder="0"></iframe>
         </section>
@@ -54,69 +58,64 @@
     </div>
 
     <script>
-
         const sections = {
             opening: document.getElementById('section-opening'),
             trace: document.getElementById('section-trace'),
-            // loop: document.getElementById('section-loop'),
+            text: document.getElementById('section-text'),
             archive: document.getElementById('section-archive')
         };
 
+        // 메뉴에 실제로 존재하는 ID들만 남깁니다.
         const buttons = {
             trace: document.getElementById('btn-trace'),
-            // loop: document.getElementById('btn-loop'),
             archive: document.getElementById('btn-archive')
         };
 
-        // 섹션 전환 함수
         function showSection(targetKey) {
-            // 모든 섹션 숨기기
-            Object.values(sections).forEach(sec => sec.classList.add('hidden'));
-            // 모든 버튼 비활성화
-            Object.values(buttons).forEach(btn => btn.classList.remove('active'));
+            Object.values(sections).forEach(sec => {
+                if (sec) sec.classList.add('hidden');
+            });
+            Object.values(buttons).forEach(btn => {
+                if (btn) btn.classList.remove('active');
+            });
 
-            // 선택한 섹션만 보이기
             if (sections[targetKey]) {
                 sections[targetKey].classList.remove('hidden');
             }
-            // 선택한 버튼 활성화
             if (buttons[targetKey]) {
                 buttons[targetKey].classList.add('active');
             }
         }
 
         window.addEventListener('message', (event) => {
-            // 1. 오프닝 종료 신호 처리
+            console.log("받은 메시지:", event.data); // 👈 디버깅용: 콘솔에 찍히는지 확인
+
             if (event.data === 'opening-finished') {
-                // 'sections' 객체를 사용하여 접근 (오류 방지)
-                sections.opening.classList.add('hidden');
-                sections.trace.classList.remove('hidden');
-
-                // 내비게이션 버튼 상태 업데이트
-                buttons.trace.classList.add('active');
-
-                // trace-system에게 시작 신호 전송
+                showSection('trace');
                 const traceFrame = document.getElementById('trace-frame').contentWindow;
                 traceFrame.postMessage('start-trace', '*');
             }
 
-            // 2. 아카이브 이동 신호 처리 (팝업 클릭 시)
+            if (event.data === 'go-to-text') {
+                showSection('text');
+                // 💡 중요: 텍스트 프레임에 강제로 focus를 주거나 새로고침하여 타이밍 이슈 방지
+                const textFrame = document.getElementById('text-frame');
+                textFrame.src = textFrame.src; 
+            }
+
             if (event.data === 'go-to-archive') {
                 showSection('archive');
             }
         });
 
-        // 2. 버튼 클릭 이벤트 연결
-        buttons.trace.onclick = () => showSection('trace');
-        // buttons.loop.onclick = () => showSection('loop');
-        buttons.archive.onclick = () => showSection('archive');
+        if (buttons.trace) buttons.trace.onclick = () => showSection('trace');
+        if (buttons.archive) buttons.archive.onclick = () => showSection('archive');
 
-        // About 모달 로직 (기존과 동일)
         const btnAbout = document.getElementById('btn-about');
         const modal = document.getElementById('about-modal');
         const closeBtn = document.querySelector('.close-button');
-        btnAbout.onclick = () => modal.classList.remove('hidden');
-        closeBtn.onclick = () => modal.classList.add('hidden');
+        if (btnAbout) btnAbout.onclick = () => modal.classList.remove('hidden');
+        if (closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
     </script>
 </body>
 </html>
