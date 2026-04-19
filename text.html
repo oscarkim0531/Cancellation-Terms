@@ -49,10 +49,14 @@
 
             // Trace-System에서 생성된 문구 데이터 가져오기 (localStorage 활용)
             const savedTraces = localStorage.getItem('userTraceData');
-            if (savedTraces) {
-                document.getElementById('trace-sentence-result').innerText = savedTraces;
+            const traceResultElement = document.getElementById('trace-sentence-result');
+
+            if (savedTraces && savedTraces.trim().length > 0) {
+                traceResultElement.innerText = savedTraces;
+                // 자바스크립트의 줄바꿈(\n)을 화면에 그대로 나타내도록 CSS 속성 부여
+                traceResultElement.style.whiteSpace = "pre-wrap"; 
             } else {
-                document.getElementById('trace-sentence-result').innerText = "기록된 약관 데이터가 존재하지 않습니다.";
+                traceResultElement.innerText = "기록된 약관 데이터가 존재하지 않습니다.";
             }
 
             // 애니메이션 시퀀스 시작
@@ -72,7 +76,7 @@
                     msg.classList.add('active'); // CSS에서 정의할 애니메이션 트리거
                 }, delay);
                 
-                delay += 4500; // 문장 하나가 머무는 시간
+                delay += 5500; // 문장 하나가 머무는 시간
 
                 // 마지막 문장인 경우 선택지 버튼 등장
                 if (index === messages.length - 1) {

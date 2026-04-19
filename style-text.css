@@ -57,7 +57,7 @@ body, html {
 .message-item.active {
     opacity: 1;
     transform: translateY(-50%);
-    animation: fadeOutUp 1.5s ease-in forwards 3.5s; /* 3초 머문 후 위로 사라짐 */
+    animation: fadeOutUp 1.5s ease-in forwards 4.5s; /* 3초 머문 후 위로 사라짐 */
 }
 
 @keyframes fadeOutUp {
@@ -136,12 +136,13 @@ body, html {
 
 /* 사용자가 쫓았던 단어들이 정돈된 줄글로 나타나는 스타일 */
 #trace-sentence-result {
-    font-size: 18pt;
+    font-size: 12pt;
     font-weight: 300;
-    line-height: 2.2;
+    line-height: 1.8;
     color: #ccc;
-    text-align: justify; /* 양쪽 정렬로 '문서' 같은 느낌 부여 */
+    text-align: left; /* 양쪽 정렬로 '문서' 같은 느낌 부여 */
     word-break: break-all;
+    white-space: pre-wrap;
 }
 
 #btn-back-to-choice {

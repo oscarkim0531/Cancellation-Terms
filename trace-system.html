@@ -146,6 +146,14 @@
             if (isSystemStarted) return;
             isSystemStarted = true;
 
+            const btnWidth = button.offsetWidth;
+            const btnHeight = button.offsetHeight;
+            currentBtnX = window.innerWidth / 2 - btnWidth / 2;
+            currentBtnY = window.innerHeight / 2 - btnHeight / 2;
+
+            button.style.left = `${currentBtnX}px`;
+            button.style.top = `${currentBtnY}px`;
+
             fullTraceText = "";
             localStorage.removeItem('userTraceData');
             startTime = null;
@@ -241,8 +249,14 @@
             lastWordX = currentX;
             lastWordY = currentY;
 
-            fullTraceText += currentWord + " "; // 단어들을 계속 이어 붙임
-            localStorage.setItem('userTraceData', fullTraceText); // 실시간 저장
+            fullTraceText += currentWord + " "; 
+
+            // 현재 단어가 문장의 마지막 단어인지 확인 (줄바꿈 추가)
+            if (wordIndexInSentence === wordsInSentence.length - 1) {
+                fullTraceText += "\n\n"; // 문장 끝에 줄바꿈 두 번 추가 (가독성)
+            }
+
+            localStorage.setItem('userTraceData', fullTraceText);
 
             // 단어 블록들과 해지하기 버튼 간의 연결
             const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
