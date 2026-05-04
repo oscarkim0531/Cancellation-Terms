@@ -24,7 +24,7 @@ body {
     border-bottom: 1px solid #333;
     background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(10px);
-    z-index: 1000;
+    z-index: 500;
 }
 
 .nav-left {

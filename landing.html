@@ -32,7 +32,10 @@
         let particles = [];
         let width, height;
         let scrollTop = 0;
+        let progress = 0; // 0 ~ 1 사이의 진행도
+        let isCompleted = false;
         const text = "CANCELLATION TERMS";
+        const speed = 0.0003; // 스크롤 감도 (낮을수록 천천히 응축됨)
         
         // 1. 환경 설정
         function init() {
@@ -85,6 +88,25 @@
             }
         }
 
+        window.addEventListener('wheel', (e) => {
+            // 이미 완료되어 전환 중이라면 휠 입력을 무시하여 중복 실행 방지
+            if (isCompleted) return; 
+
+            progress += e.deltaY * speed;
+            progress = Math.max(0, Math.min(progress, 1)); 
+            
+            // 1. 단어가 99% 이상 완성되었을 때
+            if (progress >= 0.99 && !isCompleted) {
+                isCompleted = true; // 상태 고정
+                
+                // 2. 즉시 넘어가지 않고 '여운'을 주는 지연 시간 설정 (예: 2초)
+                setTimeout(() => {
+                    console.log("Archive Initialization Complete. Transitioning...");
+                    window.parent.postMessage('landing-finished', '*'); // 부모에게 신호 전송
+                }, 2000); // 2000ms = 2초 (원하는 만큼 수정 가능)
+            }
+        }, { passive: true });
+
         // 3. 애니메이션 및 스크롤 연동 로직
         function animate() {
             ctx.clearRect(0, 0, width, height);
@@ -104,10 +126,10 @@
                 const dy = p.targetY - p.currentY;
                 
                 // 스크롤 분률에 따라 조각들이 중앙으로 모임
-                const x = p.currentX + dx * scrollFraction;
-                const y = p.currentY + dy * scrollFraction;
+                const x = p.currentX + dx * progress;
+                const y = p.currentY + dy * progress;
 
-                ctx.fillStyle = `rgba(255, 255, 255, ${0.3 + scrollFraction * 0.7})`;
+                ctx.fillStyle = `rgba(255, 255, 255, ${0.2 + scrollFraction * 0.8})`;
                 ctx.fillRect(x, y, p.size, p.size);
             });
 
