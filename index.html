@@ -28,8 +28,8 @@
     </nav>
 
     <main>
-        <section id="section-opening" class="content-section">
-            <iframe src="./opening.html" id="opening-frame" frameborder="0"></iframe>
+        <section id="section-landing" class="content-section">
+            <iframe src="./landing.html" id="landing-frame" frameborder="0"></iframe>
         </section>
 
         <section id="section-trace" class="content-section hidden">
@@ -58,7 +58,7 @@
 
     <script>
         const sections = {
-            opening: document.getElementById('section-opening'),
+            landing: document.getElementById('section-landing'),
             trace: document.getElementById('section-trace'),
             text: document.getElementById('section-text'),
             archive: document.getElementById('section-archive')
@@ -106,7 +106,8 @@
 
         // 2. 메시지 수신 로직
         window.addEventListener('message', (event) => {
-            if (event.data === 'opening-finished') {
+            if (event.data === 'landing-finished') {
+                sections.landing.classList.add('hidden');
                 runSystemGuide(); 
             }
             if (event.data === 'go-to-text') {

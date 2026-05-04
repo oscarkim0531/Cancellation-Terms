@@ -1,0 +1,97 @@
+/* 1. 시스템 초기화 및 기본 폰트 설정 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    background-color: #000; /* 절대적인 블랙 배경 */
+    color: #fff;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    overflow-x: hidden; /* 가로 스크롤 방지 */
+}
+
+/* 2. 스크롤 길이를 확보하여 인터랙션 밀도 조절 */
+#scroll-wrapper {
+    position: relative;
+    width: 100%;
+    height: 400vh; /* 👈 스크롤 길이를 길게 설정하여 픽셀이 모이는 과정을 충분히 즐기게 함 */
+}
+
+/* 3. 캔버스 컨테이너 (화면 고정) */
+#canvas-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+    pointer-events: none;
+}
+
+#pixel-canvas {
+    display: block;
+    /* 픽셀의 예리함을 유지하기 위해 렌더링 옵션 추가 */
+    image-rendering: pixelated; 
+    pointer-events: none;
+}
+
+/* 4. 스크롤 유도 가이드 (사용자 이탈 방지용) */
+#scroll-guide {
+    position: absolute;
+    bottom: 5vh;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    z-index: 10;
+    transition: opacity 0.5s ease;
+}
+
+.guide-text {
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    color: rgba(255, 255, 255, 0.4);
+    font-family: 'Courier New', Courier, monospace; /* 기계적인 인상 부여 */
+}
+
+.guide-line {
+    width: 1px;
+    height: 60px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5), transparent);
+    /* 아래로 흐르는 듯한 애니메이션 */
+    position: relative;
+    overflow: hidden;
+}
+
+.guide-line::after {
+    content: '';
+    position: absolute;
+    top: -60px;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    animation: scrollMove 2s infinite;
+}
+
+@keyframes scrollMove {
+    0% { top: -60px; }
+    100% { top: 60px; }
+}
+
+/* 5. 반응형 대응 */
+@media (max-width: 768px) {
+    .guide-text {
+        font-size: 8px;
+    }
+}
