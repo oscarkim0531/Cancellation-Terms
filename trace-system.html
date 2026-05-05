@@ -11,6 +11,8 @@
 </head>
 <body>
     <div id="interaction-canvas">
+        <div id="background-instruction">'해지하기' 버튼을 추적하세요.</div>
+
         <div id="interaction-shield"></div>
 
         <div class="system-declaration">
@@ -40,14 +42,11 @@
     <div id="custom-modal" class="modal-hidden">
         <div class="modal-content">
             <p>정말 해지하시겠습니까?</p>
-            <button id="modal-confirm-btn">이동하기</button>
+            <button id="modal-confirm-btn">해지하기</button>
         </div>
     </div>
 
     <script>
-        /* ==========================================
-            Firebase 설정 (승민님의 프로젝트 정보)
-        ========================================== */
         const firebaseConfig = {
             apiKey: "AIzaSyDYxHPcUery0vbVzn7DutlyOhHdr7R-Z6Y",
             authDomain: "cancellationterms-oscarkim.firebaseapp.com",

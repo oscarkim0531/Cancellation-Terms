@@ -35,7 +35,7 @@
         let progress = 0; // 0 ~ 1 사이의 진행도
         let isCompleted = false;
         const text = "CANCELLATION TERMS";
-        const speed = 0.0003; // 스크롤 감도 (낮을수록 천천히 응축됨)
+        const speed = 0.0005; // 스크롤 감도 (낮을수록 천천히 응축됨)
         
         // 1. 환경 설정
         function init() {
@@ -99,11 +99,11 @@
             if (progress >= 0.99 && !isCompleted) {
                 isCompleted = true; // 상태 고정
                 
-                // 2. 즉시 넘어가지 않고 '여운'을 주는 지연 시간 설정 (예: 2초)
+                // 2. 즉시 넘어가지 않고 '여운'을 주는 지연 시간 설정
                 setTimeout(() => {
                     console.log("Archive Initialization Complete. Transitioning...");
                     window.parent.postMessage('landing-finished', '*'); // 부모에게 신호 전송
-                }, 2000); // 2000ms = 2초 (원하는 만큼 수정 가능)
+                }, 3000);
             }
         }, { passive: true });
 
@@ -129,8 +129,8 @@
                 const x = p.currentX + dx * progress;
                 const y = p.currentY + dy * progress;
 
-                ctx.fillStyle = `rgba(255, 255, 255, ${0.2 + scrollFraction * 0.8})`;
-                ctx.fillRect(x, y, p.size, p.size);
+                ctx.fillStyle = `rgba(255, 255, 255, ${0.4 + scrollFraction * 0.6})`;
+                ctx.fillRect(x, y, p.size, p.size + 0.2);
             });
 
             // 4. 단어가 완전히 합쳐졌을 때 가이드 페이지로 전환

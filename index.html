@@ -68,47 +68,74 @@
         function runSystemGuide() {
             const guideWrapper = document.createElement('div');
             guideWrapper.id = 'system-guide-overlay';
+            guideWrapper.style.perspective = "1000px";
             document.body.appendChild(guideWrapper);
 
             const messages = [
-                "구독 중인 서비스를 해지하기 위해 '해지하기' 버튼을 찾아 헤맸던 경험이 있나요?",
-                "우리는 필요에 의해 구독하고, 필요가 다하면 해지를 시도합니다.",
+                "구독 중인 서비스를 해지하기 위해 '해지하기' 버튼을 찾아 헤맸던 경험, 다들 있으실 겁니다.",
+                "우리는 원할 때 구독 서비스를 시작하고, 필요가 없어지면 그 서비스를 해지하고자 합니다.",
                 "이제 이 서비스를 해지해 보세요."
             ];
 
-            let delay = 0;
-            messages.forEach((msg, i) => {
-                setTimeout(() => {
+            let messageIndex = 0;
+
+            function showNextMessage() {
+                if (messageIndex < messages.length) {
                     const p = document.createElement('p');
                     p.className = 'guide-text';
-                    p.innerText = msg;
+                    p.innerText = messages[messageIndex];
                     guideWrapper.appendChild(p);
-                    
-                    // 3초 후 문구 사라짐
-                    setTimeout(() => { p.classList.add('fade-out'); }, 4000);
-                }, delay);
-                delay += 5000;
-            });
 
-            // 모든 문구가 끝난 뒤 (delay 시점)
-            setTimeout(() => {
-                guideWrapper.innerHTML = ''; // 화면 비우기 (Empty Space 시작)
+                    // 짧은 지연 후 나타나기 (CSS Transition 활용)
+                    setTimeout(() => { p.classList.add('show'); }, 100);
+
+                    // 4초 후 사라지면서 다음 문구 호출
+                    setTimeout(() => {
+                        p.classList.remove('show');
+                        p.style.transform = "translateZ(500px) translateY(0px)"; // 사용자 쪽으로 더 다가오며 사라짐
+                        p.style.opacity = "0";
+                        p.style.filter = "blur(10px)";
+                        
+                        setTimeout(() => {
+                            p.remove();
+                            messageIndex++;
+                            showNextMessage();
+                        }, 1200);
+                    }, 4000);
+                } else {
+                    // 모든 문구가 끝난 뒤
+                    finishGuide();
+                }
+            }
+
+            function finishGuide() {
+                guideWrapper.style.opacity = "0";
+                guideWrapper.style.transition = "opacity 1.5s ease";
                 
-                // 1.5초간 검은 화면 유지 후 Trace 섹션 활성화
                 setTimeout(() => {
                     guideWrapper.remove();
                     showSection('trace');
                     const traceFrame = document.getElementById('trace-frame').contentWindow;
                     traceFrame.postMessage('start-trace', '*');
                 }, 1500);
-            }, delay);
+            }
+
+            showNextMessage();
+
         }
 
         // 2. 메시지 수신 로직
         window.addEventListener('message', (event) => {
             if (event.data === 'landing-finished') {
-                sections.landing.classList.add('hidden');
-                runSystemGuide(); 
+                // 1. 터널링 애니메이션 실행
+                const landingFrame = document.getElementById('landing-frame');
+                landingFrame.classList.add('tunneling-out');
+
+                // 2. 애니메이션이 어느 정도 진행된 후 가이드 시작
+                setTimeout(() => {
+                    sections.landing.classList.add('hidden');
+                    runSystemGuide(); 
+                }, 1000); // 1.2초 애니메이션 중 1초 지점에서 전환
             }
             if (event.data === 'go-to-text') {
                 showSection('text');
