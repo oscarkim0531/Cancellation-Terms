@@ -51,7 +51,7 @@
             apiKey: "AIzaSyDYxHPcUery0vbVzn7DutlyOhHdr7R-Z6Y",
             authDomain: "cancellationterms-oscarkim.firebaseapp.com",
             projectId: "cancellationterms-oscarkim",
-            storageBucket: "cancellationterms-oscarkim.firebasestorage.app", // 👈 여기가 저장소 주소입니다.
+            storageBucket: "cancellationterms-oscarkim.firebasestorage.app",
             messagingSenderId: "361219148645",
             appId: "1:361219148645:web:730d93edf0ec4473c5af8c"
         };
@@ -60,18 +60,12 @@
         firebase.initializeApp(firebaseConfig);
         const storage = firebase.storage();
 
-        /* ==========================================
-           1. 핵심 설정 변수 (이 값들을 수정해 보세요)
-           ========================================== */
-        const createInterval = 400;     // 👉 단어 생성 간격 (ms) : 값이 클수록 단어가 천천히 생깁니다.
-        const initialRadius = 200;      // 👉 초기 버튼 도망 반경 (px)
-        const rotationSpeed = 0.03;     // 👉 버튼의 회전 속도
-        const phaseDuration = 6000;    // 👉 Phase 전환 대기 시간 (ms) : 15초 후 버튼이 다가옵니다.
-        const lineOpacity = 0.6;        // 👉 연결 선의 투명도 (0~1)
+        const createInterval = 400;
+        const initialRadius = 200;
+        const rotationSpeed = 0.03;
+        const phaseDuration = 6000;
+        const lineOpacity = 0.6;
         
-        /* ==========================================
-           2. 문장 데이터 세팅
-           ========================================== */
         const chosenSentences = [
             "귀하가 본 서비스를 해지하더라도 이미 결제된 요금은 일절 환불되지 않습니다.",
             "중도 해지 시 모든 할인 혜택은 위약금으로 소급 청구될 수 있습니다.",
@@ -85,11 +79,8 @@
             "귀하는 본 고지 사항을 모두 읽었으며, 해지 시 발생하는 모든 불이익을 본인의 책임으로 수용합니다."
         ];
 
-        /* ==========================================
-           3. 시스템 로직 (수정 시 주의)
-           ========================================== */
         let wordsBuffer = [];
-        let linesBuffer = []; // 생성된 모든 선(line) 객체를 저장할 배열
+        let linesBuffer = [];
         let sentenceIndex = 0;
         let wordIndexInSentence = 0;
         let totalMoveDist = 0;
@@ -97,8 +88,8 @@
         const container = document.getElementById('word-container');
         const button = document.getElementById('evasive-button');
         const lineCanvas = document.getElementById('line-canvas');
-        const lerpFactor = 0.1; // 👉 값이 작을수록 더 부드럽고 끈적하게 따라옵니다 (0.05~0.15 추천)
-        const minDistance = 15; // 👉 마우스가 최소 15px은 움직여야 단어가 생성됨 (중첩 방지)
+        const lerpFactor = 0.1;
+        const minDistance = 15;
         const gridSize = 40;
         const maxProgressionDist = 5000;
     
@@ -108,39 +99,36 @@
         let buttonAngle = Math.random() * Math.PI * 2; 
         let currentRadius = initialRadius;
         let isClickable = false;
-        let isSystemStarted = false; // 👉 시스템 시작 여부를 체크하는 스위치
-        let creationTimer = null;    // 👉 타이머를 제어하기 위한 변수
+        let isSystemStarted = false;
+        let creationTimer = null;
         let currentBtnX = window.innerWidth / 2;
         let currentBtnY = window.innerHeight / 2;
         let lastMouseX = 0;
         let lastMouseY = 0;
-        let lastWordX = null; // 👉 직전 단어의 X좌표 저장용
-        let lastWordY = null; // 👉 직전 단어의 Y좌표 저장용
+        let lastWordX = null;
+        let lastWordY = null;
         let totalDistance = 0;
         let blockCount = 0;
         let startTime = null;
         let elapsedTime = 0;
         let fullTraceText = "";
+        let isTraceStopped = false;
 
-        // 기존 스크립트 하단에 추가
         window.addEventListener('message', (e) => {
             if (e.data === 'start-trace') {
-                // 신호를 받으면 수치들을 초기 상태로 셋팅
                 currentRadius = initialRadius; 
                 isClickable = false;
                 button.classList.remove('clickable');
                 button.onclick = null;
                 
-                runTraceSystem(); // 시스템 시작
+                runTraceSystem();
             }
         });
 
         window.onload = () => {
-            // 로드되자마자 실행하지 않고, 버튼 위치만 중앙에 잡아둡니다.
             updateButton(); 
         };
 
-        // 마우스 이동 감지
         window.addEventListener('mousemove', (e) => {
             mouseX = e.clientX;
             mouseY = e.clientY;
@@ -162,7 +150,6 @@
             localStorage.removeItem('userTraceData');
             startTime = null;
 
-            // 0.5초 정적 후 단어 생성 시작
             setTimeout(() => {
                 creationTimer = setInterval(() => {
                     createWordAndLine();
@@ -176,11 +163,20 @@
                         isClickable = true;
                         button.classList.add('clickable');
                         
-                        // [추가] 버튼이 활성화되면 인터랙션 쉴드를 제거하여 버튼 클릭이 가능하게 함
                         const shield = document.getElementById('interaction-shield');
                         if (shield) shield.style.display = 'none'; 
 
                         button.onclick = () => {
+                            isTraceStopped = true;
+
+                            if (creationTimer) {
+                                clearInterval(creationTimer);
+                                creationTimer = null;
+                            }
+                            const reportStatus = document.getElementById('system-data-report');
+                            if (reportStatus) {
+                                reportStatus.innerHTML = reportStatus.innerHTML.replace("RECORDING...", "FINALIZED");
+                            }
                             captureAndDownload();
                             setTimeout(() => {
                                 const modal = document.getElementById('custom-modal');
@@ -194,26 +190,24 @@
         }
 
         function createWordAndLine() {
+            if (isTraceStopped) return;
+
             if (!startTime) startTime = Date.now();
 
             const dist = Math.sqrt(Math.pow(mouseX - lastMouseX, 2) + Math.pow(mouseY - lastMouseY, 2));
             
-            // 1. 최소 이동 거리 미달 시 리턴 (중복 제거)
             if (dist < minDistance) return;
 
-            // 2. 그리드 좌표 계산 (마우스 좌표를 격자점에 스냅)
             const snappedX = Math.round(mouseX / gridSize) * gridSize;
             const snappedY = Math.round(mouseY / gridSize) * gridSize;
 
-            // 3. 시각적 점진성 계산 (누적 거리에 기반)
             totalMoveDist += dist;
             let progression = Math.min(totalMoveDist / maxProgressionDist, 1);
             
             const currentOpacity = 0.1 + (progression * 0.9);
             const currentStrokeWidth = 0.5 + (progression * 2.5);
-            const currentFontSize = 14 + (progression * 4);
+            const currentFontSize = 0.8 + (progression * 0.4);
 
-            // 데이터 업데이트 및 UI 반영
             totalDistance += Math.round(dist);
             blockCount++;
             elapsedTime = ((Date.now() - startTime) / 1000).toFixed(1);
@@ -222,26 +216,22 @@
             document.getElementById('val-blocks').innerText = blockCount;
             document.getElementById('val-time').innerText = elapsedTime;
 
-            // 이전 마우스 위치 업데이트
             lastMouseX = mouseX;
             lastMouseY = mouseY;
 
-            // 4. 단어 데이터 추출
             const currentFullSentence = chosenSentences[sentenceIndex];
             const wordsInSentence = currentFullSentence.split(' ');
             const currentWord = wordsInSentence[wordIndexInSentence];
 
-            // 5. 단어 블록 생성 (박스 없이 글자만)
             const span = document.createElement('span');
             span.className = 'word-data';
             span.innerText = currentWord;
             span.style.left = `${snappedX}px`;
             span.style.top = `${snappedY}px`;
             span.style.opacity = currentOpacity;
-            span.style.fontSize = `${currentFontSize}pt`;
+            span.style.fontSize = `${currentFontSize}rem`;
             container.appendChild(span);
 
-            // 6. 단어 간 연결 (붉은 선) - 좌표 동기화 수정됨
             if (lastWordX !== null && lastWordY !== null) {
                 const pathLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
                 pathLine.setAttribute("x1", lastWordX);
@@ -254,11 +244,9 @@
                 lineCanvas.appendChild(pathLine);
             }
 
-            // [중요] 다음 선의 시작점을 현재의 '스냅된' 좌표로 저장
             lastWordX = snappedX; 
             lastWordY = snappedY;
 
-            // 7. 버튼과 연결 (초록 선)
             const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
             line.setAttribute("x1", snappedX);
             line.setAttribute("y1", snappedY);
@@ -273,14 +261,12 @@
                 originY: snappedY
             });
 
-            // 아카이브 데이터 저장
             fullTraceText += currentWord + " "; 
             if (wordIndexInSentence === wordsInSentence.length - 1) {
                 fullTraceText += "\n\n";
             }
             localStorage.setItem('userTraceData', fullTraceText);
 
-            // 인덱스 관리
             wordIndexInSentence++;
             if (wordIndexInSentence >= wordsInSentence.length) {
                 wordIndexInSentence = 0;
@@ -288,16 +274,13 @@
             }
         }
 
-        // 버튼 위치 업데이트 (반경 시각화 및 충돌 회피 포함)
         function updateButton() {
+            if (isTraceStopped) return;
             buttonAngle += rotationSpeed;
 
-            // 1. 이론적인 목표 위치 계산
             let targetX = mouseX + Math.cos(buttonAngle) * currentRadius;
             let targetY = mouseY + Math.sin(buttonAngle) * currentRadius;
 
-            // 2. 화면 경계 처리 (Bounce & Slide)
-            // 단순히 고정하는 게 아니라, 마진 안쪽으로 타겟을 밀어넣음
             const margin = 80;
             const btnWidth = button.offsetWidth;
             const btnHeight = button.offsetHeight;
@@ -305,15 +288,12 @@
             targetX = Math.max(margin, Math.min(targetX, window.innerWidth - btnWidth - margin));
             targetY = Math.max(margin, Math.min(targetY, window.innerHeight - btnHeight - margin));
 
-            // 3. 실제 위치로 부드럽게 이동 (Lerp 로직)
-            // 현재 위치 = 현재 위치 + (목표 - 현재) * 속도
             currentBtnX += (targetX - currentBtnX) * lerpFactor;
             currentBtnY += (targetY - currentBtnY) * lerpFactor;
 
             button.style.left = `${currentBtnX}px`;
             button.style.top = `${currentBtnY}px`;
 
-            // 4. 선(Line) 업데이트 (현재 부드러워진 버튼 위치 기준)
             const btnCenterX = currentBtnX + btnWidth / 2;
             const btnCenterY = currentBtnY + btnHeight / 2;
 
@@ -331,14 +311,9 @@
             const watermark = document.getElementById('capture-watermark');
             const systemData = document.getElementById('system-data-report');
 
-            // 1. 캡처 직전에 워터마크를 선명하게 변경
             systemData.style.color = "rgba(4, 255, 0, 0.9)";
             watermark.style.color = "rgba(4, 255, 0, 0.9)";
 
-            const captureWidth = 1920;
-            const captureHeight = 960;
-
-            // 워터마크에 타임스탬프 실시간 주입
             const now = new Date();
             watermark.innerHTML = `© 2026 Cancellation Terms Archive — Oscar Kim<br>
                                     GENERATED ON: ${now.toLocaleString()}<br>
@@ -346,36 +321,38 @@
 
             html2canvas(target, {
                 backgroundColor: "#000000",
-                // [핵심] 사용자의 현재 창 크기가 아닌, 명시적인 수치를 부여함
-                width: captureWidth,
-                height: captureHeight,
-                scale: 2, // 이미 1920px이므로 scale은 1로 충분 (필요시 2로 높여 인쇄용 대응)
-                windowWidth: captureWidth,
-                windowHeight: captureHeight,
+                scale: 1,
                 useCORS: true,
                 logging: false,
+                allowTaint: true,
+                width: window.innerWidth,
+                height: window.innerHeight,
+                scrollX: 0,
+                scrollY: -window.pageYOffset,
                 onclone: (clonedDoc) => {
-                    // 복제된 문서의 타겟 요소를 강제로 1920x1080으로 고정
                     const clonedTarget = clonedDoc.getElementById('interaction-canvas');
-                    clonedTarget.style.width = `${captureWidth}px`;
-                    clonedTarget.style.height = `${captureHeight}px`;
-
+                    clonedTarget.style.width = `${window.innerWidth}px`;
+                    clonedTarget.style.height = `${window.innerHeight}px`;
+                    
                     const clonedWords = clonedDoc.querySelectorAll('.word-data');
                     clonedWords.forEach(word => {
-                        word.style.animation = 'none';
                         word.style.opacity = '1';
                     });
                 }
             }).then(canvas => {
-                // 2. 이미지를 데이터 URL로 변환
+                const finalCanvas = document.createElement('canvas');
+                const fctx = finalCanvas.getContext('2d');
+                finalCanvas.width = 1920;
+                finalCanvas.height = 960;
+                fctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, 1920, 960);
+                
                 const image = canvas.toDataURL("image/png");
                 
-                // 3. 가상의 링크를 만들어 자동 다운로드 실행
                 const link = document.createElement('a');
                 const fileName = `Cancellation_Trace_${now.getTime()}.png`;
 
                 link.href = image;
-                link.download = fileName; // 파일명 설정
+                link.download = fileName;
                 link.click();
 
                 canvas.toBlob((blob) => {
@@ -389,30 +366,25 @@
                     });
                 }, 'image/png');
 
-                // 2. 캡처 완료 후 다시 원래의 흐릿한 상태로 복구
                 systemData.style.color = "rgba(4, 255, 0, 0.2)";
                 watermark.style.color = "rgba(4, 255, 0, 0.2)";
             });
         }
 
-        // 초기화 및 Phase 관리
         window.onload = () => {
             updateButton();
 
-            // 설정된 시간 이후 버튼이 서서히 마우스로 다가옴
             setTimeout(() => {
                 const shrinkEffect = setInterval(() => {
                     if (currentRadius > 5) {
-                        currentRadius -= 2; // 서서히 줄어드는 속도
+                        currentRadius -= 2;
                     } else {
                         clearInterval(shrinkEffect);
                         isClickable = true;
                         button.classList.add('clickable');
                         button.onclick = () => {
-                            // 👉 1. 먼저 현재 화면을 캡처하고 저장
                             captureAndDownload();
 
-                            // 👉 2. 약간의 시차(이미지 생성 시간)를 두고 모달 띄우기
                             setTimeout(() => {
                                 const modal = document.getElementById('custom-modal');
                                 modal.classList.remove('modal-hidden');

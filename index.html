@@ -15,7 +15,7 @@
 
     <nav class="top-nav">
         <div class="nav-left">
-            <h1 class="logo">CANCELLATION TERMS</h1>
+            <h1 class="logo" id="btn-logo" style="cursor: pointer;">CANCELLATION TERMS</h1>
             <div class="mode-switch">
                 <button id="btn-trace">TRACE</button>
                 <!-- <button id="btn-loop">LOOP</button> -->
@@ -35,10 +35,6 @@
         <section id="section-trace" class="content-section hidden">
             <iframe src="./trace-system.html" id="trace-frame" frameborder="0"></iframe>
         </section>
-
-        <!-- <section id="section-loop" class="content-section hidden">
-            <iframe src="./endless-loop.html" id="loop-frame" frameborder="0"></iframe>
-        </section> -->
 
         <section id="section-text" class="content-section hidden">
             <iframe src="./text.html" id="text-frame" frameborder="0"></iframe>
@@ -64,7 +60,6 @@
             archive: document.getElementById('section-archive')
         };
 
-        // 1. 안내 문구 애니메이션 및 시스템 시작 제어
         function runSystemGuide() {
             const guideWrapper = document.createElement('div');
             guideWrapper.id = 'system-guide-overlay';
@@ -86,10 +81,8 @@
                     p.innerText = messages[messageIndex];
                     guideWrapper.appendChild(p);
 
-                    // 짧은 지연 후 나타나기 (CSS Transition 활용)
                     setTimeout(() => { p.classList.add('show'); }, 100);
 
-                    // 4초 후 사라지면서 다음 문구 호출
                     setTimeout(() => {
                         p.classList.remove('show');
                         p.style.transform = "translateZ(500px) translateY(0px)"; // 사용자 쪽으로 더 다가오며 사라짐
@@ -103,7 +96,6 @@
                         }, 1200);
                     }, 4000);
                 } else {
-                    // 모든 문구가 끝난 뒤
                     finishGuide();
                 }
             }
@@ -124,18 +116,15 @@
 
         }
 
-        // 2. 메시지 수신 로직
         window.addEventListener('message', (event) => {
             if (event.data === 'landing-finished') {
-                // 1. 터널링 애니메이션 실행
                 const landingFrame = document.getElementById('landing-frame');
                 landingFrame.classList.add('tunneling-out');
 
-                // 2. 애니메이션이 어느 정도 진행된 후 가이드 시작
                 setTimeout(() => {
                     sections.landing.classList.add('hidden');
                     runSystemGuide(); 
-                }, 1000); // 1.2초 애니메이션 중 1초 지점에서 전환
+                }, 1000);
             }
             if (event.data === 'go-to-text') {
                 showSection('text');
@@ -165,6 +154,14 @@
             if (buttons[targetKey]) {
                 buttons[targetKey].classList.add('active');
             }
+        }
+
+        const btnLogo = document.getElementById('btn-logo');
+
+        if (btnLogo) {
+            btnLogo.onclick = () => {
+                window.location.reload();
+            };
         }
 
         if (buttons.trace) buttons.trace.onclick = () => showSection('trace');

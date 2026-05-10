@@ -5,17 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cancellation Terms | Initialization</title>
     <link rel="stylesheet" href="./style-landing.css" type="text/css" media="all">
-    <!-- 고정폭 서체와 볼드한 인상을 위한 Pretendard 병행 -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 </head>
 <body>
 
-    <!-- 스크롤 거리를 확보하기 위한 가상 컨테이너 -->
     <div id="scroll-wrapper">
         <div id="canvas-container">
             <canvas id="pixel-canvas"></canvas>
             
-            <!-- 초기 안내 문구 (사용자 이탈 방지) -->
             <div id="scroll-guide">
                 <span class="guide-text">SCROLL TO EXTRACT TERMS</span>
                 <div class="guide-line"></div>
@@ -32,12 +29,11 @@
         let particles = [];
         let width, height;
         let scrollTop = 0;
-        let progress = 0; // 0 ~ 1 사이의 진행도
+        let progress = 0;
         let isCompleted = false;
         const text = "CANCELLATION TERMS";
-        const speed = 0.0005; // 스크롤 감도 (낮을수록 천천히 응축됨)
+        const speed = 0.0005;
         
-        // 1. 환경 설정
         function init() {
             width = window.innerWidth;
             height = window.innerHeight;
@@ -49,37 +45,30 @@
             });
         }
 
-        // 2. 텍스트 픽셀 데이터 추출
         function createParticles() {
             particles = [];
             ctx.clearRect(0, 0, width, height);
             
-            // 캔버스 중앙에 텍스트 그리기 (데이터 추출용)
             ctx.fillStyle = "white";
-            const fontSize = Math.min(width * 0.12, 120); // 볼드하고 거대한 타이포그래피
+            const fontSize = Math.min(width * 0.12, 120);
             ctx.font = `900 ${fontSize}px 'Pretendard'`;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.fillText(text, width / 2, height / 2);
 
-            // 그려진 텍스트에서 픽셀 좌표 추출
             const imageData = ctx.getImageData(0, 0, width, height).data;
             ctx.clearRect(0, 0, width, height);
 
-            // 픽셀 조각의 밀도 및 크기 조절 (사용자가 인식 가능한 적절한 크기)
             const gap = 4; 
             for (let y = 0; y < height; y += gap) {
                 for (let x = 0; x < width; x += gap) {
                     const index = (y * width + x) * 4;
                     if (imageData[index + 3] > 128) {
                         particles.push({
-                            // 최종 목적지 (단어를 이루는 좌표)
                             targetX: x,
                             targetY: y,
-                            // 초기 무작위 위치 (화면 전체에 뿌려짐)
                             currentX: Math.random() * width,
                             currentY: Math.random() * height,
-                            // 개별 조각의 크기와 속도 변수
                             size: Math.random() * 2 + 1,
                             speed: Math.random() * 0.05 + 0.02
                         });
@@ -89,43 +78,34 @@
         }
 
         window.addEventListener('wheel', (e) => {
-            // 이미 완료되어 전환 중이라면 휠 입력을 무시하여 중복 실행 방지
             if (isCompleted) return; 
 
             progress += e.deltaY * speed;
             progress = Math.max(0, Math.min(progress, 1)); 
             
-            // 1. 단어가 99% 이상 완성되었을 때
             if (progress >= 0.99 && !isCompleted) {
-                isCompleted = true; // 상태 고정
+                isCompleted = true;
                 
-                // 2. 즉시 넘어가지 않고 '여운'을 주는 지연 시간 설정
                 setTimeout(() => {
                     console.log("Archive Initialization Complete. Transitioning...");
-                    window.parent.postMessage('landing-finished', '*'); // 부모에게 신호 전송
+                    window.parent.postMessage('landing-finished', '*');
                 }, 3000);
             }
         }, { passive: true });
 
-        // 3. 애니메이션 및 스크롤 연동 로직
         function animate() {
             ctx.clearRect(0, 0, width, height);
             
-            // 스크롤 진행도 계산 (0 ~ 1)
             scrollTop = window.pageYOffset || document.documentElement.scrollTop;
             const maxScroll = scrollWrapper.offsetHeight - window.innerHeight;
             const scrollFraction = Math.min(scrollTop / maxScroll, 1);
 
-            // 가이드 문구 투명도 조절
             guide.style.opacity = 1 - (scrollFraction * 4);
 
             particles.forEach(p => {
-                // 선형 보간(Lerp)을 통한 좌표 이동
-                // 스크롤이 내려갈수록 current 위치에서 target 위치로 수렴
                 const dx = p.targetX - p.currentX;
                 const dy = p.targetY - p.currentY;
                 
-                // 스크롤 분률에 따라 조각들이 중앙으로 모임
                 const x = p.currentX + dx * progress;
                 const y = p.currentY + dy * progress;
 
@@ -133,13 +113,10 @@
                 ctx.fillRect(x, y, p.size, p.size + 0.2);
             });
 
-            // 4. 단어가 완전히 합쳐졌을 때 가이드 페이지로 전환
             if (scrollFraction >= 0.99) {
-                // 한 번만 실행되도록 플래그를 두는 것이 좋습니다.
                 if (!window.isTransitioning) {
                     window.isTransitioning = true;
                     console.log("Transition to Guide System Initiated");
-                    // window.location.href = 'guide.html';
                     window.parent.postMessage('landing-finished', '*');
                 }
             } else {

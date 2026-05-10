@@ -1,17 +1,24 @@
-/* 1. 전체 레이아웃: 어둠과 정적 */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+:root {
+    --size-h2: 1.25rem;
+    --size-body: 1rem;
+    --size-meta: 0.75rem;
+    --color-point: #ff0000;
+    --font-data: 'JetBrains Mono', monospace;
+}
+
 body, html {
     width: 100%;
     height: 100%;
-    background-color: #000; /* 완전한 블랙 */
+    background-color: #000;
     color: #fff;
     font-family: 'Pretendard', sans-serif;
-    overflow: hidden; /* 스크롤바 숨김 (복기 모드 제외) */
+    overflow: hidden;
 }
 
 #text-system-wrapper {
@@ -23,7 +30,6 @@ body, html {
     position: relative;
 }
 
-/* 2. 순차적 문장 애니메이션 (Scrolling Messages) */
 #scrolling-message-container {
     width: 80%;
     max-width: 900px;
@@ -36,28 +42,28 @@ body, html {
     left: 0;
     right: 0;
     top: 50%;
-    transform: translateY(100px); /* 아래에서 대기 */
+    transform: translateY(3rem);
     opacity: 0;
-    font-size: 18pt;
-    font-weight: 500;
-    line-height: 1.6;
-    letter-spacing: -0.02em;
-    transition: all 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    font-size: 1.125rem;
+    font-weight: 300;
+    line-height: 1.8;
+    letter-spacing: -0.01em;
+    transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
     pointer-events: none;
 }
 
-/* 문장 내 강조 (날짜/시간 등) */
 .message-item span {
     font-weight: 700;
-    color: #ff0000; /* 시스템 컬러인 초록색 포인트 */
-    text-decoration: underline;
+    color: var(--color-point);
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-point);
+    padding-bottom: 2px;
 }
 
-/* 활성화 상태 (중앙으로 올라옴) */
 .message-item.active {
     opacity: 1;
     transform: translateY(-50%);
-    animation: fadeOutUp 1.5s ease-in forwards 4.5s; /* 3초 머문 후 위로 사라짐 */
+    animation: fadeOutUp 1.5s ease-in forwards 4.5s;
 }
 
 @keyframes fadeOutUp {
@@ -67,12 +73,11 @@ body, html {
     }
 }
 
-/* 3. 최종 선택지 영역 (Final Choice) */
 #final-choice-area {
     position: absolute;
-    bottom: 100px;
+    bottom: 15vh;
     display: flex;
-    gap: 40px;
+    gap: 1.5rem;
     opacity: 0;
     transition: opacity 1s ease;
 }
@@ -83,14 +88,15 @@ body, html {
 
 #final-choice-area button {
     background: none;
-    border: 1px solid #444;
-    color: #888;
-    padding: 12px 30px;
-    font-size: 14pt;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.4);
+    padding: 0.8rem 1.5rem;
+    font-size: var(--size-meta);
+    font-family: var(--font-data);
     font-weight: 500;
+    letter-spacing: 0.15em;
     cursor: pointer;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
     transition: all 0.3s ease;
 }
 
@@ -100,19 +106,18 @@ body, html {
     background-color: rgba(255, 0, 0, 0.05);
 }
 
-/* 4. 복기하기 오버레이 (Recall Mode) */
 #recall-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: #000;
     z-index: 1000;
-    padding: 80px 40px;
+    padding: 5rem 2.5rem;
+    background-color: rgba(0, 0, 0, 0.98);
     display: flex;
     justify-content: center;
-    overflow-y: auto; /* 줄글이 길어질 수 있으므로 스크롤 허용 */
+    overflow-y: auto;
 }
 
 .recall-content {
@@ -121,10 +126,10 @@ body, html {
 }
 
 .recall-content h2 {
-    font-size: 10pt;
-    color: #ff0000;
-    letter-spacing: 0.3em;
-    margin-bottom: 20px;
+    font-size: var(--size-meta);
+    font-family: var(--font-data);
+    letter-spacing: 0.4em;
+    margin-bottom: 3rem;
     text-align: center;
 }
 
@@ -134,13 +139,13 @@ body, html {
     margin: 40px 0;
 }
 
-/* 사용자가 쫓았던 단어들이 정돈된 줄글로 나타나는 스타일 */
 #trace-sentence-result {
-    font-size: 12pt;
+    font-size: 0.875rem;
+    font-family: var(--font-data);
     font-weight: 300;
-    line-height: 1.8;
-    color: #ccc;
-    text-align: left; /* 양쪽 정렬로 '문서' 같은 느낌 부여 */
+    line-height: 2;
+    color: #888;
+    text-align: left;
     word-break: break-all;
     white-space: pre-wrap;
 }
@@ -151,12 +156,14 @@ body, html {
     background: #fff;
     color: #000;
     border: none;
-    padding: 10px 40px;
+    font-size: var(--size-meta);
+    font-family: var(--font-data);
+    letter-spacing: 0.1em;
+    padding: 0.6rem 2.5rem;
     font-weight: 700;
     cursor: pointer;
 }
 
-/* 유틸리티: 숨김 처리 */
 .hidden {
     display: none !important;
 }

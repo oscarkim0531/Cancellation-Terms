@@ -1,81 +1,125 @@
-/* 기본 설정 */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+:root {
+    font-size: 100%;
+
+    --size-h1: 1.25rem;
+    --size-body: 1rem;
+    --size-meta: 0.75rem;
+    --size-small: 0.625rem;
+
+    --ls-wide: 0.25em;
+    --ls-normal: 0.1em;
+    --ls-tight: -0.01em;
+
+    --lh-tight: 1.2;
+    --lh-normal: 1.6;
+
+    --color-bg: #000000;
+    --color-text: #ffffff;
+    --color-point: #ff0000;
+    --color-dim: rgba(255, 255, 255, 0.5);
+    --color-border: rgba(255, 255, 255, 0.08);
+}
+
 body {
     font-family: 'Pretendard', sans-serif;
-    background-color: #000; /* 전체 다크 배경 */
+    background-color: #000;
     color: #fff;
     overflow-x: hidden;
 }
 
-/* 상단 내비게이션 */
 .top-nav {
     position: fixed;
     top: 0;
     width: 100%;
-    padding: 1.5rem 2rem;
+    padding: 1.5rem 2.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #333;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(10px);
-    z-index: 500;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08); 
+    background: rgba(0, 0, 0, 0.95); 
+    z-index: 1000;
 }
 
 .nav-left {
     display: flex;
-    align-items: center;
-    gap: 2rem;
+    align-items: baseline;
+    gap: 48px;
 }
 
 .logo {
-    font-size: 1.2rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    font-size: var(--size-h1);
+    font-weight: 800;
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
-/* 버튼 스타일링 */
+.logo:hover {
+    opacity: 0.6;
+    letter-spacing: var(--ls-wide);
+}
+
+.mode-switch {
+    display: flex;
+    gap: 8px;
+}
+
 button {
-    background: none;
-    border: 1px solid #fff;
-    color: #fff;
-    padding: 0.5rem 1.2rem;
+    background: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--color-dim);
+    padding: 0.5rem 1rem;
     cursor: pointer;
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: var(--size-meta);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-normal);
     transition: all 0.2s ease;
 }
 
 button:hover {
-    background-color: #fff;
-    color: #000;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+body button.active {
+    background-color: transparent !important;
+    color: #ff0000 !important;
+    border-color: #ff0000 !important;
+    border-width: 1px;
+    box-shadow: 0 0 8px rgba(255, 0, 0, 0.1);
 }
 
 #btn-about {
-    border-color: #555;
-    color: #888;
+    border: none;
+    color: var(--color-dim);
+    font-size: var(--size-small);
+    letter-spacing: var(--ls-normal);
 }
 
-#btn-about:hover {
-    border-color: #fff;
+button:hover {
+    border-color: rgba(255, 255, 255, 0.8);
     color: #fff;
 }
 
-/* 컨텐츠 영역 */
 main {
-    padding-top: 80px; /* nav 높이만큼 여백 */
+    padding-top: 80px;
 }
 
 .hidden {
     display: none !important;
 }
 
-/* System Guide Overlay */
 #system-guide-overlay {
     position: fixed;
     top: 0;
@@ -91,7 +135,7 @@ main {
 
 .tunneling-out {
     animation: typographyTunnel 1.2s cubic-bezier(0.7, 0, 0.3, 1) forwards;
-    pointer-events: none; /* 애니메이션 도중 클릭 방지 */
+    pointer-events: none;
 }
 
 @keyframes typographyTunnel {
@@ -101,7 +145,7 @@ main {
         opacity: 1;
     }
     100% {
-        transform: scale(15); /* 15배 확대하여 글자 사이로 들어가는 느낌 연출 */
+        transform: scale(15);
         filter: blur(10px);
         opacity: 0;
     }
@@ -110,12 +154,12 @@ main {
 .guide-text {
     position: absolute;
     color: #fff;
-    font-size: 1.2rem; /* 약간 작게 조정하여 깊이감 유도 */
+    font-size: var(--size-body);
+    line-height: var(--lh-tight);
     font-weight: 300;
     text-align: center;
     opacity: 0;
-    letter-spacing: 0.1em;
-    /* 깊이감을 위한 초기 설정 */
+    letter-spacing: 0.05em;
     transform: translateZ(-200px) translateY(0); 
     transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -138,16 +182,14 @@ main {
     to { opacity: 0; transform: translateY(-20px); }
 }
 
-/* Archive Grid */
 #grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1px; /* 선으로 구분되는 느낌 */
-    background-color: #333; /* 구분선 색상 */
+    gap: 1px;
+    background-color: #333;
     border-bottom: 1px solid #333;
 }
 
-/* About 모달 */
 .modal {
     position: fixed;
     top: 0;
@@ -170,10 +212,11 @@ main {
 }
 
 .modal-content p {
-    font-size: 12pt;
-    font-weight: 500;
-    line-height: 1.6;
+    font-size: var(--size-body);
+    font-weight: 400;
+    line-height: var(--lh-normal);
     color: #ccc;
+    word-break: keep-all;
 }
 
 .close-button {
@@ -184,10 +227,8 @@ main {
     cursor: pointer;
 }
 
-/* style.css 하단에 추가 */
-
 .content-section {
-    position: fixed; /* absolute보다 fixed가 레이아웃 유지에 유리 */
+    position: fixed;
     top: 80px;
     left: 0;
     width: 100%;
@@ -199,7 +240,6 @@ main {
     display: none !important;
 }
 
-/* 모든 iframe 공통 스타일 */
 iframe {
     width: 100%;
     height: 100%;
@@ -208,19 +248,18 @@ iframe {
 }
 
 button.active {
-    background-color: #ff0000; /* 승민 님이 정한 레드 포인트 */
+    background-color: #ff0000;
     color: #fff;
     border-color: #ff0000;
 }
 
-/* 오프닝 섹션은 다른 요소보다 위에 있어야 함 */
 #section-landing {
     position: fixed;
-    top: 0; /* 80px이 아니라 0으로 설정하여 상단바까지 덮음 */
+    top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    z-index: 9999; /* 최상단 레이어 */
+    z-index: 9999;
     pointer-events: none;
 }
 

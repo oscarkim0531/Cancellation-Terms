@@ -37,48 +37,36 @@
     </div>
 
     <script>
-        /* ==========================================
-           1. 초기 데이터 설정 및 시간 주입
-           ========================================== */
         window.onload = () => {
-            // 시간 데이터 주입
             const now = new Date();
             const timeString = `${now.getFullYear()}년 ${String(now.getMonth() + 1).padStart(2, '0')}월 ${String(now.getDate()).padStart(2, '0')}일 ` +
                                `${String(now.getHours()).padStart(2, '0')}시 ${String(now.getMinutes()).padStart(2, '0')}분 ${String(now.getSeconds()).padStart(2, '0')}초`;
             document.getElementById('current-time-display').innerText = timeString;
 
-            // Trace-System에서 생성된 문구 데이터 가져오기 (localStorage 활용)
             const savedTraces = localStorage.getItem('userTraceData');
             const traceResultElement = document.getElementById('trace-sentence-result');
 
             if (savedTraces && savedTraces.trim().length > 0) {
                 traceResultElement.innerText = savedTraces;
-                // 자바스크립트의 줄바꿈(\n)을 화면에 그대로 나타내도록 CSS 속성 부여
                 traceResultElement.style.whiteSpace = "pre-wrap"; 
             } else {
                 traceResultElement.innerText = "기록된 약관 데이터가 존재하지 않습니다.";
             }
 
-            // 애니메이션 시퀀스 시작
             startMessageSequence();
         };
 
-        /* ==========================================
-           2. 문장 순차 등장 로직 (Sequence Control)
-           ========================================== */
         function startMessageSequence() {
             const messages = document.querySelectorAll('.message-item');
             let delay = 1000;
 
             messages.forEach((msg, index) => {
-                // 각 문장이 순차적으로 아래에서 위로 올라오고 사라지는 타이밍 계산
                 setTimeout(() => {
-                    msg.classList.add('active'); // CSS에서 정의할 애니메이션 트리거
+                    msg.classList.add('active');
                 }, delay);
                 
-                delay += 5500; // 문장 하나가 머무는 시간
+                delay += 5500;
 
-                // 마지막 문장인 경우 선택지 버튼 등장
                 if (index === messages.length - 1) {
                     setTimeout(() => {
                         document.getElementById('final-choice-area').classList.remove('hidden');
@@ -88,22 +76,15 @@
             });
         }
 
-        /* ==========================================
-           3. 인터랙션 이벤트 연결
-           ========================================== */
-        // [해지 약관 복기하기] 버튼 클릭
         document.getElementById('btn-recall').onclick = () => {
             document.getElementById('recall-overlay').classList.remove('hidden');
         };
 
-        // [돌아가기] 버튼 클릭
         document.getElementById('btn-back-to-choice').onclick = () => {
             document.getElementById('recall-overlay').classList.add('hidden');
         };
 
-        // [아카이브 진입하기] 버튼 클릭
         document.getElementById('btn-go-archive').onclick = () => {
-            // 부모 창(index.html)으로 신호 전송하여 섹션 전환
             window.parent.postMessage('go-to-archive', '*');
         };
     </script>
