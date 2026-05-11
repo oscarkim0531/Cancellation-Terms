@@ -24,7 +24,7 @@
                 <p class="guide-instruction">약관 조항을 읽어 내려가며 특정 문구 위에 마우스를 머무르세요.</p>
             </header>
             <article id="terms-display" class="scroll-area">
-                <div class="placeholder-text">브랜드를 선택하면 약관 데이터가 해독됩니다.</div>
+                <div class="placeholder-text">브랜드를 선택하면 해당 브랜드의 해지약관이 보입니다.</div>
             </article>
         </section>
 
@@ -32,8 +32,11 @@
             <header class="column-header">
                 <p class="guide-instruction">빨간색 조항은 소비자 독소 조항을,<br> 민트색 조항은 기업 면책 조항을 의미합니다.</p>
             </header>
-            <div id="archive-stage" class="stage-area">
-                </div>
+            <div id="archive-stage" class="stage-area"></div>
+            
+            <footer class="column-footer">
+                <button id="finish-btn" onclick="finishArchive()">CLOSE CASE AND RESET</button>
+            </footer>
         </section>
     </div>
 
@@ -43,6 +46,7 @@
 
         let archiveData = [];
         let zIndexCounter = 100;
+        let collectedStrictWords = [];
 
         function initArchive() {
             Papa.parse(csvUrl, {
@@ -100,30 +104,30 @@
 
         function extractWord(element, type) {
             if (element.classList.contains('extracted')) return;
-
             element.classList.add('extracted');
 
             const stage = document.getElementById('archive-stage');
-            const rect = element.getBoundingClientRect();
-            
+            const stageRect = stage.getBoundingClientRect();
+            const originRect = element.getBoundingClientRect();    
+
             const clone = document.createElement('div');
             clone.className = `archived-item ${type}`;
             clone.innerText = element.innerText;
-            
-            clone.style.left = `${rect.left}px`;
-            clone.style.top = `${rect.top}px`;
+
+            // 초기 위치 (절대 좌표 기반 계산)
+            clone.style.left = `${originRect.left - stageRect.left}px`;
+            clone.style.top = `${originRect.top - stageRect.top}px`;
             clone.style.zIndex = zIndexCounter++;
-
             stage.appendChild(clone);
+            
+            requestAnimationFrame(() => {
+                clone.classList.add('moving');
+                const padding = 40;
+                const targetX = padding + Math.random() * (stageRect.width - clone.offsetWidth - padding * 2);
+                const targetY = padding + Math.random() * (stageRect.height - clone.offsetHeight - padding * 2);
 
-            setTimeout(() => {
-                const stageRect = stage.getBoundingClientRect();
-                const randomX = Math.random() * (stageRect.width - 150);
-                const randomY = Math.random() * (stageRect.height - 50);
-                
-                clone.style.left = `${randomX}px`;
-                clone.style.top = `${randomY}px`;
-                clone.style.position = 'absolute';
+                clone.style.left = `${targetX}px`;
+                clone.style.top = `${targetY}px`;
                 
                 if (type === 'flexible') {
                     setTimeout(() => {
@@ -131,7 +135,22 @@
                         setTimeout(() => clone.remove(), 2000);
                     }, 3000);
                 }
-            }, 50);
+            });
+
+            if (type === 'strict') {
+                collectedStrictWords.push(element.innerText); // 단어 수집
+            }
+        }
+
+        function finishArchive() {
+            if (collectedStrictWords.length === 0) {
+                alert("아직 수집된 독소 조항이 없습니다.");
+                return;
+            }
+            const uniqueWords = [...new Set(collectedStrictWords)];
+            localStorage.setItem('strictWords', JSON.stringify(uniqueWords));
+            // 부모창(index.html)에서 엔딩 섹션을 보여주도록 메시지 전송 혹은 직접 이동
+            window.location.href = 'ending.html'; 
         }
 
         window.onload = initArchive;

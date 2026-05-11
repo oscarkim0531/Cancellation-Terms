@@ -168,7 +168,7 @@ body, html {
     font-size: var(--size-meta);
     font-family: var(--font-data);
     font-weight: 300;
-    line-height: 2;
+    line-height: 1.2;
     color: var(--op-mid);
     text-align: left;
     word-break: break-all;

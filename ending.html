@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Verdict | Evidence Archive</title>
+    <link rel="stylesheet" href="./style-ending.css">
+</head>
+<body class="ending-body">
+
+    <main id="ending-canvas">
+        <div id="word-wall" class="center-align"></div>
+
+        <div id="final-sentence" class="hidden">
+            <p>기업은 약관을 통해 당신을 옥죄고,</p>
+            <p>자신들의 책임을 회피한다.</p>
+        </div>
+    </main>
+
+    <script>
+        window.onload = () => {
+            const collectedWords = JSON.parse(localStorage.getItem('strictWords')) || [];
+            const wordWall = document.getElementById('word-wall');
+            const finalSentence = document.getElementById('final-sentence');
+
+            collectedWords.forEach((word, index) => {
+                const span = document.createElement('span');
+                span.className = 'evidence-word';
+                span.innerText = word;
+                span.style.animationDelay = `${index * 0.05}s`;
+                wordWall.appendChild(span);
+            });
+
+            setTimeout(() => {
+                wordWall.classList.add('fade-out');
+                
+                setTimeout(() => {
+                    wordWall.style.display = 'none';
+                    finalSentence.classList.remove('hidden');
+                    finalSentence.classList.add('fade-in');
+
+                    setTimeout(() => {
+                        finalSentence.classList.add('disintegrate');
+                        setTimeout(() => {
+                            window.parent.location.href = 'index.html?reset=true'; 
+                        }, 2000);
+                    }, 3000);
+                }, 1500);
+            }, 4000);
+        };
+    </script>
+</body>
+</html>

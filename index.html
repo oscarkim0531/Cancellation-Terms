@@ -172,6 +172,15 @@
         const closeBtn = document.querySelector('.close-button');
         if (btnAbout) btnAbout.onclick = () => modal.classList.remove('hidden');
         if (closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('reset') === 'true') {
+                localStorage.removeItem('strictWords');
+                showSection('landing');
+                document.getElementById('landing-frame').contentWindow.postMessage('reset-pixel', '*');
+            }
+        });
     </script>
 </body>
 </html>

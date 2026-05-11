@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@200;400;700;800&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+:root {
+    --color-bg: #0d1013;
+    --color-strict: #e63946;
+    --color-text: #f1f1f1;
+    --font-data: 'JetBrains Mono', monospace;
+    --font-main: 'Pretendard', sans-serif;
+}
+
+.ending-body {
+    background-color: var(--color-bg);
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+#ending-canvas {
+    width: 80%;
+    max-width: 800px;
+    text-align: center;
+}
+
+#word-wall {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem 1rem;
+    transition: opacity 1.5s ease, filter 1.5s ease;
+    align-content: center;
+    height: 60vh;
+}
+
+.evidence-word {
+    font-family: var(--font-data);
+    color: var(--color-strict);
+    font-size: 1.2rem;
+    font-weight: 700;
+    opacity: 0;
+    animation: appear 0.5s forwards;
+}
+
+@keyframes appear {
+    to { opacity: 0.8; }
+}
+
+#word-wall.fade-out {
+    opacity: 0;
+    filter: blur(10px);
+}
+
+#final-sentence {
+    font-family: var(--font-main);
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1.6;
+    color: var(--color-text);
+    opacity: 0;
+    transition: opacity 1.5s ease;
+}
+
+#final-sentence.fade-in {
+    opacity: 1;
+}
+
+.disintegrate {
+    animation: disintegrate 2s forwards;
+}
+
+@keyframes disintegrate {
+    0% { opacity: 1; filter: blur(0); }
+    100% { 
+        opacity: 0; 
+        filter: blur(20px);
+        transform: scale(1.1) translateY(-20px);
+    }
+}
+
+.hidden { display: none; }
