@@ -40,7 +40,7 @@
             canvas.width = width;
             canvas.height = height;
             
-            document.fonts.ready.then(() => {
+            document.fonts.load(`900 120px "Pretendard"`).then(() => {
                 createParticles();
             });
         }
@@ -48,6 +48,10 @@
         function createParticles() {
             particles = [];
             ctx.clearRect(0, 0, width, height);
+
+            let dynamicFontSize = width * 0.12;
+            if (dynamicFontSize > 150) dynamicFontSize = 150;
+            if (dynamicFontSize < 60) dynamicFontSize = 60;
             
             ctx.fillStyle = "white";
             const fontSize = Math.min(width * 0.12, 120);
@@ -59,7 +63,8 @@
             const imageData = ctx.getImageData(0, 0, width, height).data;
             ctx.clearRect(0, 0, width, height);
 
-            const gap = 4; 
+            const gap = width < 768 ? 3 : 4;
+
             for (let y = 0; y < height; y += gap) {
                 for (let x = 0; x < width; x += gap) {
                     const index = (y * width + x) * 4;
@@ -76,6 +81,10 @@
                 }
             }
         }
+
+        window.addEventListener('resize', () => {
+            init();
+        });
 
         window.addEventListener('wheel', (e) => {
             if (isCompleted) return; 

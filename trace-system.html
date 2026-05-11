@@ -238,7 +238,7 @@
                 pathLine.setAttribute("y1", lastWordY);
                 pathLine.setAttribute("x2", snappedX);
                 pathLine.setAttribute("y2", snappedY);
-                pathLine.setAttribute("stroke", "#ff0000");
+                pathLine.setAttribute("stroke", "var(--color-point)");
                 pathLine.setAttribute("stroke-width", currentStrokeWidth);
                 pathLine.setAttribute("opacity", currentOpacity);
                 lineCanvas.appendChild(pathLine);
@@ -250,9 +250,9 @@
             const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
             line.setAttribute("x1", snappedX);
             line.setAttribute("y1", snappedY);
-            line.setAttribute("stroke", "#33ff33");
+            line.setAttribute("stroke", "var(--color-text)");
             line.setAttribute("stroke-width", currentStrokeWidth * 0.3); 
-            line.setAttribute("opacity", currentOpacity * 0.5);
+            line.setAttribute("opacity", currentOpacity * 0.2);
             lineCanvas.appendChild(line);            
 
             linesBuffer.push({

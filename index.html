@@ -41,7 +41,7 @@
         </section>
 
         <section id="section-archive" class="content-section hidden">
-            <iframe src="./archive.html" id="archive-frame" frameborder="0"></iframe>
+            <iframe src="./archive-column.html" id="archive-frame" frameborder="0"></iframe>
         </section>
     </main>
 
@@ -67,8 +67,8 @@
             document.body.appendChild(guideWrapper);
 
             const messages = [
-                "구독 중인 서비스를 해지하기 위해 '해지하기' 버튼을 찾아 헤맸던 경험, 다들 있으실 겁니다.",
-                "우리는 원할 때 구독 서비스를 시작하고, 필요가 없어지면 그 서비스를 해지하고자 합니다.",
+                "구독 중인 서비스를 해지하기 위해 '해지하기' 버튼을 찾아 헤맸던 경험이 있으신가요?",
+                "우리는 원할 때 구독 서비스를 시작하고, 필요 없어지면 그 서비스를 해지하고자 합니다.",
                 "이제 이 서비스를 해지해 보세요."
             ];
 
@@ -85,7 +85,7 @@
 
                     setTimeout(() => {
                         p.classList.remove('show');
-                        p.style.transform = "translateZ(500px) translateY(0px)"; // 사용자 쪽으로 더 다가오며 사라짐
+                        p.style.transform = "translateZ(500px) translateY(0px)";
                         p.style.opacity = "0";
                         p.style.filter = "blur(10px)";
                         

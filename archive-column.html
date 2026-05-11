@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archive Column | Evidence Dossier</title>
+    <link rel="stylesheet" href="./style-archive-column.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+</head>
+<body class="archive-body">
+
+    <div id="archive-wrapper">
+        <aside class="column section-index">
+            <header class="column-header">
+                <p class="guide-instruction">조사할 브랜드명을 선택하세요.</p>
+            </header>
+            <nav id="brand-list" class="scroll-area">
+                <div class="loading-status">DATA LOADING...</div>
+            </nav>
+        </aside>
+
+        <section class="column section-source">
+            <header class="column-header">
+                <p class="guide-instruction">약관 조항을 읽어 내려가며 특정 문구 위에 마우스를 머무르세요.</p>
+            </header>
+            <article id="terms-display" class="scroll-area">
+                <div class="placeholder-text">브랜드를 선택하면 약관 데이터가 해독됩니다.</div>
+            </article>
+        </section>
+
+        <section class="column section-extracted">
+            <header class="column-header">
+                <p class="guide-instruction">빨간색 조항은 소비자 독소 조항을,<br> 민트색 조항은 기업 면책 조항을 의미합니다.</p>
+            </header>
+            <div id="archive-stage" class="stage-area">
+                </div>
+        </section>
+    </div>
+
+    <script>
+        const sheetID = "1TdIOfMJgPWbPxAEVm7JIHlTYO_gbg9Cr2-CVu8UI8HQ";
+        const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=0`;
+
+        let archiveData = [];
+        let zIndexCounter = 100;
+
+        function initArchive() {
+            Papa.parse(csvUrl, {
+                download: true,
+                header: true,
+                complete: (results) => {
+                    archiveData = results.data.sort((a, b) => b.Difficulty_Level - a.Difficulty_Level);
+                    renderBrandList();
+                }
+            });
+        }
+
+        function renderBrandList() {
+            const listContainer = document.getElementById('brand-list');
+            listContainer.innerHTML = '';
+
+            archiveData.forEach(item => {
+                const btn = document.createElement('div');
+                btn.className = 'brand-item';
+                btn.innerText = item.Brand;
+                btn.onclick = () => loadTerms(item);
+                listContainer.appendChild(btn);
+            });
+        }
+
+        function loadTerms(data) {
+            const display = document.getElementById('terms-display');
+            let text = data.Terms_Source.replace(/\n/g, '<br>');
+
+            if(data.Strict_Keywords) {
+                const strict = data.Strict_Keywords.split(',').map(k => k.trim());
+                strict.forEach(k => {
+                    if(!k) return;
+                    const regex = new RegExp(`(${k})`, 'g');
+                    text = text.replace(regex, `<span class="keyword-strict" onmouseover="extractWord(this, 'strict')">$1</span>`);
+                });
+            }
+
+            if(data.Flexible_Keywords) {
+                const flexible = data.Flexible_Keywords.split(',').map(k => k.trim());
+                flexible.forEach(k => {
+                    if(!k) return;
+                    const regex = new RegExp(`(${k})`, 'g');
+                    text = text.replace(regex, `<span class="keyword-flexible" onmouseover="extractWord(this, 'flexible')">$1</span>`);
+                });
+            }
+
+            display.innerHTML = text;
+            
+            document.querySelectorAll('.brand-item').forEach(el => {
+                el.classList.remove('active');
+                if(el.innerText === data.Brand) el.classList.add('active');
+            });
+        }
+
+        function extractWord(element, type) {
+            if (element.classList.contains('extracted')) return;
+
+            element.classList.add('extracted');
+
+            const stage = document.getElementById('archive-stage');
+            const rect = element.getBoundingClientRect();
+            
+            const clone = document.createElement('div');
+            clone.className = `archived-item ${type}`;
+            clone.innerText = element.innerText;
+            
+            clone.style.left = `${rect.left}px`;
+            clone.style.top = `${rect.top}px`;
+            clone.style.zIndex = zIndexCounter++;
+
+            stage.appendChild(clone);
+
+            setTimeout(() => {
+                const stageRect = stage.getBoundingClientRect();
+                const randomX = Math.random() * (stageRect.width - 150);
+                const randomY = Math.random() * (stageRect.height - 50);
+                
+                clone.style.left = `${randomX}px`;
+                clone.style.top = `${randomY}px`;
+                clone.style.position = 'absolute';
+                
+                if (type === 'flexible') {
+                    setTimeout(() => {
+                        clone.classList.add('evaporate');
+                        setTimeout(() => clone.remove(), 2000);
+                    }, 3000);
+                }
+            }, 50);
+        }
+
+        window.onload = initArchive;
+    </script>
+</body>
+</html>
